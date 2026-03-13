@@ -1,3 +1,6 @@
 [submodule "buildroot"]
 	path = buildroot
 	url = git@github.com:buildroot/buildroot.git
+[submodule "script/json_resolve_scripts"]
+	path = script/json_resolve_scripts
+	url = git@github.com:kevin-825/json_resolve_scripts.git

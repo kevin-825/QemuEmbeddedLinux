@@ -1,14 +1,13 @@
 {
   "environment": {
-    "BUILDROOT_DIR": "./buildroot",
-    "EXTERNAL_DIR": "../external",
+    "BUILDROOT_DIR": "${PROJECT_ROOT}/buildroot",
+    "EXTERNAL_DIR": "${PROJECT_ROOT}/external",
     "OUTPUT_BASE_DIR": "/mnt/wsl/ramdisk5/out",
-    "LOCAL_SRC_BASE": "../local_src",
-    "GLOBAL_DL_DIR": "../shared/buildroot_downloads",
-    "GLOBAL_CCACHE_DIR": "../shared/buildroot_ccache",
+    "LOCAL_SRC_BASE": "${PROJECT_ROOT}/local_src",
+    "GLOBAL_DL_DIR": "${PROJECT_ROOT}/shared/buildroot_downloads",
+    "GLOBAL_CCACHE_DIR": "${PROJECT_ROOT}/shared/buildroot_ccache",
     "TFTP_SERVER_DIR": "/var/lib/tftpboot",
-    "HOST_WORKSPACE": "$(pwd)",
-    "DOCKER_WRAPPER": "docker run --rm -v ${HOST_WORKSPACE}:${HOST_WORKSPACE} $dockerVolumes -w ${HOST_WORKSPACE} ${DOCKER_IMAGE}"
+    "DOCKER_WRAPPER": "docker run --rm -v ${PROJECT_ROOT}:${PROJECT_ROOT} $dockerVolumes -w ${PROJECT_ROOT} ${DOCKER_IMAGE}"
   },
   "targets": {
     "qemu_riscv64_virt_board": {
@@ -16,7 +15,7 @@
       "BOARD_NAME": "qemu_riscv64_virt",
       "BOARD_TYPE": "qemu",
       "HOST_TOOLCHAIN_PATH": "/mnt/wsl/vhd0/opt/riscv/glibc/riscv/bin/riscv64-unknown-linux-gnu",
-      "ACTIVE_DEFCONFIG": "qemu_riscv64_virt_defconfig",
+      "ACTIVE_DEFCONFIG": "my_qemu_riscv64_virt_defconfig",
       "DOCKER_IMAGE": "kflyn825/rvdev:latest",
       "rootfsOnly_BR2_OPT": [
       ]
@@ -27,7 +26,7 @@
       "BOARD_NAME": "qemu_aarch64_virt",
       "BOARD_TYPE": "qemu",
       "HOST_TOOLCHAIN_PATH": "/mnt/wsl/vhd0/opt/arm/arm_toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu",
-      "ACTIVE_DEFCONFIG": "qemu_aarch64_virt_defconfig",
+      "ACTIVE_DEFCONFIG": "my_qemu_aarch64_virt_defconfig",
       "DOCKER_IMAGE": "kflyn825/arm_dev_u24:latest",
       "rootfsOnly_BR2_OPT": [
         "BR2_TARGET_OPTEE_OS=n",
@@ -39,18 +38,20 @@
       "BOARD_NAME": "qemu_aarch64_raspi3",
       "BOARD_TYPE": "qemu",
       "HOST_TOOLCHAIN_PATH": "/mnt/wsl/vhd0/opt/arm/arm_toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu",
-      "ACTIVE_DEFCONFIG": "raspberrypi3_64_defconfig",
+      "ACTIVE_DEFCONFIG": "my_qemu_aarch64_raspi3_defconfig",
       "DOCKER_IMAGE": "kflyn825/arm_dev_u24:latest"
     }
   },
   "build": {
-    "output_dir": "${OUTPUT_BASE_DIR}/${TARGET_BOARD}_rootfsOnly",
+    "output_dir": "${OUTPUT_BASE_DIR}/${TARGET_BOARD}/${BUILD_PROFILE}",
+    "overlay_dir": "${LOCAL_SRC_BASE}/overlays/${TARGET_BOARD}/${BUILD_PROFILE}",
     "base_options": [
       "-C ${BUILDROOT_DIR}",
       "O=${OUTPUT_BASE_DIR}/${output_subdir}",
       "BR2_EXTERNAL=${EXTERNAL_DIR}",
       "BR2_DL_DIR=${GLOBAL_DL_DIR}",
       "BR2_CCACHE_DIR=${GLOBAL_CCACHE_DIR}",
+      "BR2_ROOTFS_OVERLAY=${overlay_dir}",
       "-j$(nproc)"
     ],
     "rootfsOnlyBuild": {
@@ -58,12 +59,15 @@
       "build_options": [
         "BR2_LINUX_KERNEL=n",
         "BR2_TARGET_UBOOT=n",
-        "${targets.${TARGET_BOARD}.rootfsOnly_BR2_OPT.join('    ')}",
-        "BR2_ROOTFS_OVERLAY=${LOCAL_SRC_BASE}/overlays/${TARGET_BOARD}_rootfs_overlay"
+        "${targets.${TARGET_BOARD}.rootfsOnly_BR2_OPT.join('    ')}"
+        
       ],
-      "overrides": [],
+      "overrides": {
+        "CUSTOM_SENSOR_MOD": "${LOCAL_SRC_BASE}/drivers/custom_sensor_mod",
+        "PROPRIETARY_APP": "${LOCAL_SRC_BASE}/apps/my_custom_daemon"
+      },
       "pre_cmds": [
-        "mkdir -p ${LOCAL_SRC_BASE}/overlays/${TARGET_BOARD}_rootfs_overlay"
+        "mkdir -p ${LOCAL_SRC_BASE}/overlays/${TARGET_BOARD}/${BUILD_PROFILE}"
       ],
       "build_cmds": [
         "${DOCKER_WRAPPER} make ${build.base_options.join('    ')} ${ACTIVE_DEFCONFIG}",

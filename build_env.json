@@ -1,4 +1,6 @@
 {
+  "project_name": "QemuEmbeddedLinux",
+  "project_version": "0.1.0",
   "environment": {
     "BUILDROOT_DIR": "${PROJECT_ROOT}/buildroot",
     "EXTERNAL_DIR": "${PROJECT_ROOT}/external",

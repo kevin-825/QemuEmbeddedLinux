@@ -16,7 +16,8 @@
       "ARCH_NAME": "riscv64",
       "BOARD_NAME": "qemu_riscv64_virt",
       "BOARD_TYPE": "qemu",
-      "HOST_TOOLCHAIN_PATH": "/mnt/wsl/vhd0/opt/riscv/glibc/riscv/bin/riscv64-unknown-linux-gnu",
+      "HOST_TOOLCHAIN_PREFIX": "riscv64-unknown-linux-gnu",
+      "HOST_TOOLCHAIN_PATH": "/mnt/wsl/vhd0/opt/riscv/glibc/riscv",
       "ACTIVE_DEFCONFIG": "my_qemu_riscv64_virt_defconfig",
       "DOCKER_IMAGE": "kflyn825/rvdev:latest",
       "rootfsOnly_BR2_OPT": [
@@ -27,6 +28,7 @@
       "ARCH_NAME": "aarch64",
       "BOARD_NAME": "qemu_aarch64_virt",
       "BOARD_TYPE": "qemu",
+      "HOST_TOOLCHAIN_PREFIX": "aarch64-none-linux-gnu",
       "HOST_TOOLCHAIN_PATH": "/mnt/wsl/vhd0/opt/arm/arm_toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu",
       "ACTIVE_DEFCONFIG": "my_qemu_aarch64_virt_defconfig",
       "DOCKER_IMAGE": "kflyn825/arm_dev_u24:latest",
@@ -39,6 +41,7 @@
       "ARCH_NAME": "aarch64",
       "BOARD_NAME": "qemu_aarch64_raspi3",
       "BOARD_TYPE": "qemu",
+      "HOST_TOOLCHAIN_PREFIX": "aarch64-none-linux-gnu",
       "HOST_TOOLCHAIN_PATH": "/mnt/wsl/vhd0/opt/arm/arm_toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu",
       "ACTIVE_DEFCONFIG": "my_qemu_aarch64_raspi3_defconfig",
       "DOCKER_IMAGE": "kflyn825/arm_dev_u24:latest"
@@ -46,15 +49,15 @@
   },
   "build": {
     "output_dir": "${OUTPUT_BASE_DIR}/${TARGET_BOARD}/${BUILD_PROFILE}",
-    "overlay_dir": "${LOCAL_SRC_BASE}/overlays/${TARGET_BOARD}/${BUILD_PROFILE}",
+    "overlays_dir": "$(EXTERNAL_DIR)/board/${TARGET_BOARD}/overlay",
     "base_options": [
       "-C ${BUILDROOT_DIR}",
-      "O=${OUTPUT_BASE_DIR}/${output_subdir}",
+      "O=${output_dir}",
       "BR2_EXTERNAL=${EXTERNAL_DIR}",
       "BR2_DL_DIR=${GLOBAL_DL_DIR}",
       "BR2_CCACHE_DIR=${GLOBAL_CCACHE_DIR}",
-      "BR2_ROOTFS_OVERLAY=${overlay_dir}",
-      "-j$(nproc)"
+      "BR2_TOOLCHAIN_EXTERNAL_PATH=${targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PATH}",
+      "BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX=${targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PREFIX}"
     ],
     "rootfsOnlyBuild": {
       "env_exports": {},

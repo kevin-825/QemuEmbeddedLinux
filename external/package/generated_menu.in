@@ -1,0 +1,10 @@
+# Auto-generated menu list
+menu "Apps"
+    source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/package/apps/hello/Config.in"
+    source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/package/apps/example_app/Config.in"
+    source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/package/apps/my_custom_daemon/Config.in"
+endmenu
+menu "Drivers"
+    source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/package/drivers/custom_sensor_mod/Config.in"
+    source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/package/drivers/example_driver/Config.in"
+endmenu

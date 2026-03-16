@@ -1,0 +1,13 @@
+MY_CUSTOM_DAEMON_VERSION = local
+MY_CUSTOM_DAEMON_SITE = $(BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH)/package/apps/my_custom_daemon/src
+MY_CUSTOM_DAEMON_SITE_METHOD = local
+
+define MY_CUSTOM_DAEMON_BUILD_CMDS
+	$(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(\@D) all
+endef
+
+define MY_CUSTOM_DAEMON_INSTALL_TARGET_CMDS
+	$(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(\@D) DESTDIR=$(TARGET_DIR) install
+endef
+
+$(eval $(generic-package))

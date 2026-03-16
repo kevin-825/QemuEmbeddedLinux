@@ -1,0 +1,4 @@
+config BR2_PACKAGE_CUSTOM_SENSOR_MOD
+	bool "custom_sensor_mod"
+	help
+	  Custom drivers package for custom_sensor_mod.

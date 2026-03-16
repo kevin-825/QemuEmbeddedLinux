@@ -1,0 +1,4 @@
+# Auto-generated kernel extensions list
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/linux/example_kernel_mod/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/linux/example-driver/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/linux/scelton/Config.in"

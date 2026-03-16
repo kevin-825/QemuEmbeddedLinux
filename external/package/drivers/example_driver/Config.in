@@ -1,0 +1,4 @@
+config BR2_PACKAGE_EXAMPLE_DRIVER
+	bool "example_driver"
+	help
+	  Auto-generated package for example_driver.

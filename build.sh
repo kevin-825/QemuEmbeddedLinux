@@ -103,16 +103,15 @@ main() {
     export TARGET_BOARD BUILD_PROFILE
     export ARCH_NAME=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.ARCH_NAME")
     echo "Selected Target: $TARGET_BOARD, Build Profile: $BUILD_PROFILE, ARCH_NAME: $ARCH_NAME"
-    #echo dockerVolumes:$dockerVolumes
-    # 1. Run the build sequence defined in the profile
-    ./scripts/pre_build.sh "$TARGET_BOARD" "$BUILD_PROFILE"
+
     run_build_profile "$TARGET_BOARD" "$BUILD_PROFILE"
-    ./scripts/post_build.sh "$TARGET_BOARD" "$BUILD_PROFILE"
-    # 2. Optionally launch QEMU
+
     run_qemu_logic "$BUILD_PROFILE"
     
     echo ">>> [SUCCESS] Pipeline for $TARGET_BOARD using $BUILD_PROFILE finished."
-    ls /mnt/wsl/ramdisk5/
+    OUT_DIR=$($jSON_RESOLVER "$JSON_CFG" "environment.OUTPUT_BASE_DIR")"/$TARGET_BOARD/$BUILD_PROFILE"
+    mkdir -p "$OUT_DIR/images/extracted_rootfs"
+    tar -xf $OUT_DIR/images/rootfs.tar -C $OUT_DIR/images/extracted_rootfs
 }
 
 main "$@"

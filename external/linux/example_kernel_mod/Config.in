@@ -1,0 +1,4 @@
+config BR2_LINUX_KERNEL_EXT_EXAMPLE_KERNEL_MOD
+	bool "example_kernel_mod module"
+	help
+	  Auto-generated kernel module extension for example_kernel_mod.

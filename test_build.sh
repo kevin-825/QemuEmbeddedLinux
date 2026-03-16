@@ -34,10 +34,11 @@ main() {
     local tempinfo
     local build_cmds
     local rootfsOnly_BR2_OPT
-    #rootfsOnly_BR2_OPT=$($jSON_RESOLVER "$JSON_CFG" "targets.qemu_riscv64_virt_board.rootfsOnly_BR2_OPT.join('    ')")
+    #rootfsOnly_BR2_OPT=$($jSON_RESOLVER "$JSON_CFG" "${targets.qemu_riscv64_virt_board.rootfsOnly_BR2_OPT.join('    ')}")
     #tempinfo=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.qemu_run_cmd")
     #tempinfo=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.build_cmds")
-    bo=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.build_options")
+    #bo=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.build_options")
+    bo=$($jSON_RESOLVER "$JSON_CFG" "targets[]" -k)
     echo -e "tempinfo: $tempinfo" >&2
     echo -e "build_cmds: $build_cmds" >&2
     echo -e "build_options: $bo" >&2

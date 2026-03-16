@@ -1,0 +1,4 @@
+config BR2_PACKAGE_EXAMPLE_APP
+	bool "example_app"
+	help
+	  Auto-generated package for example_app.

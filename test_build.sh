@@ -6,7 +6,7 @@
 # --- Configuration & Defaults ---
 JSON_CFG="./build_env.json"
 jSON_RESOLVER="./scripts/json_resolve_scripts/resolver.sh"
-
+jSON_FILE_RESOLVER="./scripts/json_resolve_scripts/json_resolve_file.sh"
 temp(){
     local profile="$1"
     # Use mapfile/readarray to fetch the command array from the resolver
@@ -24,10 +24,19 @@ temp(){
 }
 
 main() {
+    PROJECT_ROOT=$(dirname "$(readlink -f "$0")")
+    echo "Project Root: $PROJECT_ROOT"
+    export PROJECT_ROOT
     TARGET_BOARD="qemu_riscv64_virt_board"
     BUILD_PROFILE="rootfsOnlyBuild"
     export TARGET_BOARD BUILD_PROFILE
     #echo "main called with args: $*"
+    local resolved_obj=$($jSON_FILE_RESOLVER -i "$JSON_CFG")
+    echo -e ">>> [INFO] Resolved JSON Object:\n" >&2
+    echo "xxxxxxxxxxx"
+    echo "$resolved_obj"
+    echo "xxxxxxxxxxx"
+    
     local qemu_cmd
     local profile="rootfsOnlyBuild"
     #qemu_cmd=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.qemu_run_cmd")
@@ -43,6 +52,8 @@ main() {
     echo -e "build_cmds: $build_cmds" >&2
     echo -e "build_options: $bo" >&2
     echo -e "rootfsOnly_BR2_OPT: $rootfsOnly_BR2_OPT" >&2
+
+    
 
 }
 

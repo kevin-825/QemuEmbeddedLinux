@@ -57,7 +57,8 @@
       "BR2_DL_DIR=${GLOBAL_DL_DIR}",
       "BR2_CCACHE_DIR=${GLOBAL_CCACHE_DIR}",
       "BR2_TOOLCHAIN_EXTERNAL_PATH=${targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PATH}",
-      "BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX=${targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PREFIX}"
+      "BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX=${targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PREFIX}",
+      "-j$(($(nproc)+1))"
     ],
     "rootfsOnlyBuild": {
       "env_exports": {},

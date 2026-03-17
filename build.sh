@@ -10,6 +10,7 @@ source $PROJECT_ROOT/scripts/json_resolve_scripts/shell_exception_handling_core/
 # --- Configuration & Defaults ---
 JSON_CFG="$PROJECT_ROOT/build_env.json"
 jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
+jSON_FILE_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/json_resolve_file.sh"
 DRY_RUN=false
 RUN_QEMU=false
 
@@ -23,7 +24,9 @@ run_build_profile() {
     
     # Use mapfile/readarray to fetch the command array from the resolver
     # We assume resolver.sh handles the .join() logic and returns newline-separated commands
-    build_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.build_cmds[]" -d)
+    local resolved_json=$($jSON_FILE_RESOLVER -i "$JSON_CFG")
+    echo " $resolved_json" > resolved.json
+    build_cmds=$($jSON_RESOLVER "$resolved_json" "build.${profile}.build_cmds[]")
 
     if [[ ${#build_cmds[@]} -eq 0 ]]; then
         echo ">>> [ERROR] No build_cmds found for profile: $profile"

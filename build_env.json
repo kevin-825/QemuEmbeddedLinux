@@ -49,7 +49,8 @@
   },
   "build": {
     "output_dir": "${OUTPUT_BASE_DIR}/${TARGET_BOARD}/${BUILD_PROFILE}",
-    "overlays_dir": "$(EXTERNAL_DIR)/board/${TARGET_BOARD}/overlay",
+    "overlays_dir": "${EXTERNAL_DIR}/board/${TARGET_BOARD}/overlay",
+    "num_cores": "$(nproc)",
     "base_options": [
       "-C ${BUILDROOT_DIR}",
       "O=${output_dir}",
@@ -58,7 +59,7 @@
       "BR2_CCACHE_DIR=${GLOBAL_CCACHE_DIR}",
       "BR2_TOOLCHAIN_EXTERNAL_PATH=${targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PATH}",
       "BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX=${targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PREFIX}",
-      "-j$(($(nproc)+1))"
+      "-j $(expr ${build.num_cores} + 1)"
     ],
     "rootfsOnlyBuild": {
       "env_exports": {},
@@ -85,7 +86,7 @@
       "kernel_image": "${OUTPUT_BASE_DIR}/${output_subdir}/images/zImage",
       "rootfs_image": "${OUTPUT_BASE_DIR}/${output_subdir}/images/rootfs.ext4",
       "dtb_image": " ",
-      "qemu_run_cmd": "./run_qemu.sh $qemu_arch ${kernel_image} ${rootfs_image} ${dtb_image}"
+      "qemu_run_cmd": "./run_qemu.sh "
     },
     "customBuild": {
       "output_subdir": "${TARGET_BOARD}_custom_build",

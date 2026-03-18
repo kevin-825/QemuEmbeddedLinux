@@ -24,9 +24,7 @@ run_build_profile() {
     
     # Use mapfile/readarray to fetch the command array from the resolver
     # We assume resolver.sh handles the .join() logic and returns newline-separated commands
-    local resolved_json=$($jSON_FILE_RESOLVER -i "$JSON_CFG")
-    echo " $resolved_json" > resolved.json
-    build_cmds=$($jSON_RESOLVER "$resolved_json" "build.${profile}.build_cmds[]")
+    build_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.build_cmds[]")
 
     if [[ ${#build_cmds[@]} -eq 0 ]]; then
         echo ">>> [ERROR] No build_cmds found for profile: $profile"

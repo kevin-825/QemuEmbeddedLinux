@@ -1,47 +1,18 @@
 
-1.to modify a defconfig :
+to build linux kernel only:
 
-step1:   load defconfig (Initialize the .config)
-make -C ./buildroot \
-  O=/mnt/wsl/ramdisk5/out/config_workspace \
-  BR2_EXTERNAL=$(pwd)/external \
-  my_qemu_riscv64_virt_defconfig
+./kbuild.sh -b qemu_riscv64_virt_board -d defconfig
 
-step2: edit
-
-make -C ./buildroot \
-  O=/mnt/wsl/ramdisk5/out/config_workspace \
-  BR2_EXTERNAL=$(pwd)/external \
-  menuconfig
-
-step3: compelete the menuconfig configuration, save end exit, new configured data is in .config
+./kbuild.sh -b qemu_riscv64_virt_board -d ./external/board/qemu_riscv64_virt_board/my_linux_defconfig -m -s my_linux_DEBUG_defconfig
 
 
 
-step4: save defconfig (from .config to defconfig)
-make -C ./buildroot \
-  O=/mnt/wsl/ramdisk5/out/config_workspace \
-  BR2_EXTERNAL=$(pwd)/external \
-  BR2_DEFCONFIG=$(pwd)/external/configs/my_qemu_riscv64_DEBUG_defconfig \
-  savedefconfig
 
 
+to build using builtroot:
 
-2. to build:
+./build.sh -b qemu_riscv64_virt_board -p rootfsOnlyBuild
+./build.sh -b qemu_riscv64_virt_board -p customBuild
 
-step1:   load defconfig (Initialize the .config)
-make -C buildroot \
-  O=/mnt/wsl/ramdisk5/out/my_raw_build \
-  BR2_EXTERNAL=$(pwd)/external \
-  my_qemu_riscv64_virt_defconfig
-
-step2:
-make -C buildroot \
-  O=/mnt/wsl/ramdisk5/out/my_raw_build \
-  BR2_EXTERNAL=$(pwd)/external
-
-
-or
-
-cd /mnt/wsl/ramdisk5/out/my_raw_build
-make
+./build.sh -b qemu_aarch64_virt_board -p rootfsOnlyBuild
+./build.sh -b qemu_aarch64_virt_board -p customBuild

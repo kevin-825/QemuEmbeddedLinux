@@ -72,7 +72,7 @@ parse_args() {
 
     while [[ $# -gt 0 ]]; do
         case $1 in
-            -t|--target)  TARGET_BOARD="$2"; shift 2 ;;
+            -b|--target-board)  TARGET_BOARD="$2"; shift 2 ;;
             -p|--build-profile) BUILD_PROFILE="$2"; shift 2 ;; 
             -d|--dry-run) DRY_RUN=true; shift ;;
             -r|--run-qemu) RUN_QEMU=true; shift ;;
@@ -84,7 +84,7 @@ parse_args() {
 # --- Module: Dynamic Help ---
 # @description: Queries JSON to list available targets and profiles
 usage() {
-    echo "Usage: $0 -t <target_board> -p <build_profile> [-d] [-r]"
+    echo "Usage: $0 -b <target_board> -p <build_profile> [-d] [-r]"
     echo ""
     echo "Available Targets (-t):"
     # Query keys under the 'targets' object

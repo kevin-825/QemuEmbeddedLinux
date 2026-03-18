@@ -134,10 +134,16 @@ kernel_config_edit() {
         echo "--> Creating auto-backup of minimal config..."
         kmake savedefconfig
         
+        # 1. Ensure the backup directory actually exists
+        mkdir -p "$AUTO_BACKUP_DIR"
+        # 2. Extract just the filename to prevent slash-injection errors
+        local clean_defconfig_name
+        clean_defconfig_name=$(basename "$TARGET_DEFCONFIG")
+        
         # Generate a unique timestamp (Format: YYYYMMDD_HHMMSS)
         local timestamp
         timestamp=$(date +%Y%m%d_%H%M%S)
-        local backup_file="${AUTO_BACKUP_DIR}/auto_${TARGET_DEFCONFIG}_${timestamp}"
+        local backup_file="${AUTO_BACKUP_DIR}/auto_${clean_defconfig_name}_${timestamp}"
         
         cp "${KBUILD_OUT_DIR}/defconfig" "$backup_file"
         echo "--> Auto-backup saved to: $backup_file"
@@ -158,7 +164,7 @@ kernel_config_save() {
 
     # SAFETY FALLBACK: If no board is specified, use a default folder
     local safe_board_name="${TARGET_BOARD:-custom_board}"
-    local save_path="${external_dir}/board/${safe_board_name}"
+    local save_path="${external_dir}/board/${safe_board_name}/kernel_configs"
 
     echo "--> Generating minimal defconfig..."
     kmake savedefconfig

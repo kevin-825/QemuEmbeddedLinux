@@ -4,7 +4,7 @@
 #source ./script/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
 
 # --- Configuration & Defaults ---
-JSON_CFG="./build_env.json"
+JSON_CFG="./env.json"
 jSON_RESOLVER="./scripts/json_resolve_scripts/resolver.sh"
 jSON_FILE_RESOLVER="./scripts/json_resolve_scripts/json_resolve_file.sh"
 temp(){

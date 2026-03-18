@@ -8,7 +8,7 @@ cd $PROJECT_ROOT
 source $PROJECT_ROOT/scripts/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
 
 # --- Configuration & Defaults ---
-JSON_CFG="$PROJECT_ROOT/build_env.json"
+JSON_CFG="$PROJECT_ROOT/env.json"
 jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
 jSON_FILE_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/json_resolve_file.sh"
 DRY_RUN=false

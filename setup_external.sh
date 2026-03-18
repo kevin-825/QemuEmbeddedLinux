@@ -3,7 +3,7 @@
 # --- Global Variables ---
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 export PROJECT_ROOT="$SCRIPT_DIR"
-JSON_CFG="$PROJECT_ROOT/build_env.json"
+JSON_CFG="$PROJECT_ROOT/env.json"
 jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
 
 RAW_PROJECT_NAME=""

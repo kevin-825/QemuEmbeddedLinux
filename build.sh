@@ -13,7 +13,7 @@ jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
 jSON_FILE_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/json_resolve_file.sh"
 DRY_RUN=false
 RUN_QEMU=false
-
+TARGET_BUILD_DEFCONFIG=""
 # --- Module: Profile Execution ---
 # @description: Iterates through the build_cmds array within the selected build_profile.
 run_build_profile() {
@@ -72,6 +72,7 @@ parse_args() {
         case $1 in
             -b|--target-board)  TARGET_BOARD="$2"; shift 2 ;;
             -p|--build-profile) BUILD_PROFILE="$2"; shift 2 ;; 
+            -def|--defconfig) TARGET_BUILD_DEFCONFIG="$2"; shift 2 ;;
             -d|--dry-run) DRY_RUN=true; shift ;;
             -r|--run-qemu) RUN_QEMU=true; shift ;;
             *) echo "Error: Unknown option '$1'"; usage; exit 1 ;;
@@ -102,8 +103,22 @@ main() {
     BUILD_PROFILE="rootfsOnlyBuild"
     parse_args "$@"
     export TARGET_BOARD BUILD_PROFILE
-    export ARCH_NAME=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.ARCH_NAME")
-    echo "Selected Target: $TARGET_BOARD, Build Profile: $BUILD_PROFILE, ARCH_NAME: $ARCH_NAME"
+    export ARCH=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.ARCH")
+    TARGET_DEFCONFIG=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.ACTIVE_DEFCONFIG")
+    if [[ -n "$TARGET_BUILD_DEFCONFIG" ]]; then
+        export TARGET_DEFCONFIG=$TARGET_BUILD_DEFCONFIG
+    else
+        export TARGET_DEFCONFIG=$TARGET_DEFCONFIG
+    fi
+    PRE_BUILT_KERNEL_IMAGE=$($jSON_RESOLVER "$JSON_CFG" "build.${BUILD_PROFILE}.PRE_BUILT_KERNEL_IMAGE")
+    export PRE_BUILT_KERNEL_IMAGE=${PRE_BUILT_KERNEL_IMAGE}
+    
+    echo -e "Selected Target: $TARGET_BOARD\n \
+        ARCH: $ARCH\n \
+        Build Profile: $BUILD_PROFILE\n \
+        TARGET_DEFCONFIG: $TARGET_DEFCONFIG \n \
+        PRE_BUILT_KERNEL_IMAGE: $PRE_BUILT_KERNEL_IMAGE \n"
+    ./scripts/generate_local_mk.sh "$JSON_CFG" "$BUILD_PROFILE"
 
     run_build_profile "$TARGET_BOARD" "$BUILD_PROFILE"
 

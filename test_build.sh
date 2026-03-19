@@ -54,10 +54,13 @@ main() {
     #bo=$($jSON_RESOLVER "$JSON_CFG" "targets[]" -k)
     #echo -e "build_options: $bo" >&2
 
-    local build_cmds
-    build_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.${BUILD_PROFILE}.build_cmds")
-    echo -e "build_cmds: $build_cmds" >&2
-    
+    #local build_cmds
+    #build_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.${BUILD_PROFILE}.build_cmds")
+    #echo -e "build_cmds: $build_cmds" >&2
+
+    local docker_wrapper
+    docker_wrapper=$($jSON_RESOLVER "$JSON_CFG" "environment.DOCKER_WRAPPER" -d)
+    echo -e "docker_wrapper: $docker_wrapper" >&2
 }
 
 main "$@"

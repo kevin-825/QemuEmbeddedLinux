@@ -9,15 +9,19 @@ source "./scripts/json_resolve_scripts/shell_exception_handling_core/exception_h
 #KERNEL_SRC="$HOME/d2/OffRepos/linux"
 KERNEL_SRC="/mnt/wsl/ramdisk5/linux"
 RELEASE_BUILD=false
-
+EXTERNAL_DIR=""
 OUTPUT_DIR=""
 KBUILD_OUT_DIR=""
+OVIRRIDE_KBUILD_OUT_DIR=""
+TARGET_BOARD=""
 ARCH=""
 CROSS_COMPILE=""
 MODE="build"
-TARGET_DEFCONFIG=""
+DEFAULT_KERNEL_DEFCONFIG=""
+DEFAULT_KERNEL_DEFCONFIG_PATH=""
+USER_KERNEL_DEFCONFIG=""
 TARGET_BOARD=""
-BUILD_PROFILE=""
+BUILD_PROFILE="rootfsOnlyBuild"
 SAVE_AS=""
 DOCKER_WRAPPER=""  # <--- ADDED THIS
 
@@ -32,7 +36,9 @@ DO_CLEAN=false
 
 # --- 1. Global Setup ---
 get_global_vars() {
+        # Defaults
     export TARGET_BOARD="$TARGET_BOARD"  # Export for use in config save/load
+    export BUILD_PROFILE="$BUILD_PROFILE"
     PROJECT_ROOT=$(dirname "$(readlink -f "$0")")
     echo "Project Root: $PROJECT_ROOT"
     export PROJECT_ROOT
@@ -44,7 +50,7 @@ get_global_vars() {
         if [[ -z "$OUTPUT_DIR" && -n "$resolved_dir" ]]; then
             OUTPUT_DIR="${resolved_dir}/${TARGET_BOARD:-default_board}"
         fi
-
+        EXTERNAL_DIR=$("$JSON_RESOLVER" "$JSON_CFG" "environment.EXTERNAL_DIR")
         DOCKER_WRAPPER=$("$JSON_RESOLVER" "$JSON_CFG" "environment.DOCKER_WRAPPER")
         # Prevent 'null' string execution if the key is missing in json
         [[ "$DOCKER_WRAPPER" == "null" ]] && DOCKER_WRAPPER=""
@@ -58,11 +64,19 @@ get_global_vars() {
                 [[ -z "$ARCH" ]] && ARCH=$("$JSON_RESOLVER" "$JSON_CFG" "targets.${TARGET_BOARD}.ARCH")
                 [[ -z "$CROSS_COMPILE" ]] && CROSS_COMPILE=$("$JSON_RESOLVER" "$JSON_CFG" "targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PREFIX")-
                 
+                DEFAULT_KERNEL_DEFCONFIG=$("$JSON_RESOLVER" "$JSON_CFG" "targets.${TARGET_BOARD}.KERNEL_DEFCONFIG")
+                DEFAULT_KERNEL_DEFCONFIG_PATH="${EXTERNAL_DIR}/board/${TARGET_BOARD}/kernel_configs"
                 # Auto-fetch defconfig if not explicitly overridden by CLI
-                if [[ -z "$TARGET_DEFCONFIG" ]]; then
-                    TARGET_DEFCONFIG=$("$JSON_RESOLVER" "$JSON_CFG" "targets.${TARGET_BOARD}.KERNEL_DEFCONFIG")
+                if [[ -z "$USER_KERNEL_DEFCONFIG" ]]; then
+                    USER_KERNEL_DEFCONFIG="$DEFAULT_KERNEL_DEFCONFIG_PATH/$DEFAULT_KERNEL_DEFCONFIG"
+                elif [[ -f "$DEFAULT_KERNEL_DEFCONFIG_PATH/$USER_KERNEL_DEFCONFIG" ]]; then
+                    USER_KERNEL_DEFCONFIG="$DEFAULT_KERNEL_DEFCONFIG_PATH/$USER_KERNEL_DEFCONFIG"
+                elif [[ -f "$USER_KERNEL_DEFCONFIG" ]]; then
+                    USER_KERNEL_DEFCONFIG="$USER_KERNEL_DEFCONFIG"
+                elif [[ -f "$KERNEL_SRC/arch/$ARCH/configs/$USER_KERNEL_DEFCONFIG" ]]; then
+                    USER_KERNEL_DEFCONFIG="$USER_KERNEL_DEFCONFIG"
                 fi
-                echo "--> Loaded from env.json: Board='$TARGET_BOARD' Arch='$ARCH' Defconfig='$TARGET_DEFCONFIG'"
+                echo "--> kbuild args: Board='$TARGET_BOARD' Arch='$ARCH' Defconfig='$USER_KERNEL_DEFCONFIG'"
             else
                 echo "Error: TARGET_BOARD '$TARGET_BOARD' not found in env.json."
                 exit 1
@@ -70,13 +84,17 @@ get_global_vars() {
         fi
         
     fi
-
-    if [[ -f "$TARGET_DEFCONFIG" ]]; then
-        basename_defconfig=$(basename "$TARGET_DEFCONFIG")
-        KBUILD_OUT_DIR="${OUTPUT_DIR}/kernel/${basename_defconfig}"
+    if [[ -z  "$OVIRRIDE_KBUILD_OUT_DIR" ]]; then
+        if [[ -f "$USER_KERNEL_DEFCONFIG" ]]; then
+            basename_defconfig=$(basename "$USER_KERNEL_DEFCONFIG")
+            KBUILD_OUT_DIR="${OUTPUT_DIR}/kernel/${basename_defconfig}"
+        else
+            # If it's not a file path, assume it's a built-in kernel target (e.g., multi_v7_defconfig)
+            KBUILD_OUT_DIR="${OUTPUT_DIR}/kernel/${USER_KERNEL_DEFCONFIG:-default_defconfig}"
+        fi
     else
-        # If it's not a file path, assume it's a built-in kernel target (e.g., multi_v7_defconfig)
-        KBUILD_OUT_DIR="${OUTPUT_DIR}/kernel/${TARGET_DEFCONFIG:-default_defconfig}"
+        echo "overriding KBUILD_OUT_DIR to: $OVIRRIDE_KBUILD_OUT_DIR"
+        KBUILD_OUT_DIR="$OVIRRIDE_KBUILD_OUT_DIR"
     fi
 }
 
@@ -89,7 +107,7 @@ usage() {
     echo "  -d, --defconfig <name>       Explicitly set the target defconfig (Required if no board is set)"
     echo "  -a, --arch <arch>            Override/Set Architecture manually"
     echo "  -cc, --cross-toolchain <pre> Override/Set Cross-compiler prefix manually"
-    echo "  -o, --output <dir>           Output build directory (overrides env.json)"
+    echo "  -o, --output <dir>           Ovirride KBUILD_OUT_DIR, used to apply a defconfig to a previously defconfig-loaded outputdir, result in a merged .config "
     echo "  -r, --release-build          Optimized release build"
     echo "  -c, --clean                  Wipe the active .config to force a fresh defconfig load"
     echo "  -m, -edit, --menuconfig      Open kernel configuration menu"
@@ -100,7 +118,7 @@ usage() {
 
 # --- 3. Core Engine ---
 kmake() {
-    local cmd=($DOCKER_WRAPPER make -C "$KERNEL_SRC" O="$KBUILD_OUT_DIR" ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" V=1)
+    local cmd=($DOCKER_WRAPPER make -C "$KERNEL_SRC" O="$KBUILD_OUT_DIR" ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" )
     echo "[exec] ${cmd[*]} $*"
     "${cmd[@]}" "$@"
 }
@@ -108,19 +126,20 @@ kmake() {
 # --- 4. Configuration Management Modules ---
 # --- 4. Configuration Management Modules ---
 kernel_config_load() {
-    echo "--> Forcing deterministic configuration: $TARGET_DEFCONFIG"
+    local target_defconfig="$1"
+    echo "--> Forcing deterministic configuration: $target_defconfig"
     
-    # Check if TARGET_DEFCONFIG is an actual file path on your PC
-    if [[ -f "$TARGET_DEFCONFIG" ]]; then
+    # Check if target_defconfig is an actual file path on your PC
+    if [[ -f "$target_defconfig" ]]; then
         echo "--> External config detected. Copying to build directory..."
-        cp "$TARGET_DEFCONFIG" "${KBUILD_OUT_DIR}/.config"
+        cp "$target_defconfig" "${KBUILD_OUT_DIR}/.config"
         
         # Expand it into a full config silently
         kmake olddefconfig
     else
         # If it's not a file path, assume it's a built-in kernel target (e.g., multi_v7_defconfig)
-        echo "--> Using built-in Internal kernel config: $TARGET_DEFCONFIG "
-        kmake "$TARGET_DEFCONFIG"
+        echo "--> Using built-in Internal kernel config: $target_defconfig "
+        kmake "$target_defconfig"
     fi
 }
 
@@ -138,7 +157,7 @@ kernel_config_edit() {
         mkdir -p "$AUTO_BACKUP_DIR"
         # 2. Extract just the filename to prevent slash-injection errors
         local clean_defconfig_name
-        clean_defconfig_name=$(basename "$TARGET_DEFCONFIG")
+        clean_defconfig_name=$(basename "$USER_KERNEL_DEFCONFIG")
         
         # Generate a unique timestamp (Format: YYYYMMDD_HHMMSS)
         local timestamp
@@ -173,10 +192,10 @@ kernel_config_save() {
     if [[ -n "$SAVE_AS" ]]; then
         save_name="${save_path}/${SAVE_AS}"
     else
-        if [[ -f "$TARGET_DEFCONFIG" ]]; then
-            save_name="${save_path}/$(basename "$TARGET_DEFCONFIG")"
+        if [[ -f "$USER_KERNEL_DEFCONFIG" ]]; then
+            save_name="${save_path}/$(basename "$USER_KERNEL_DEFCONFIG")"
         else
-            save_name="${save_path}/${TARGET_DEFCONFIG}"
+            save_name="${save_path}/${USER_KERNEL_DEFCONFIG}"
         fi
     fi
     
@@ -187,7 +206,8 @@ kernel_config_save() {
 
 config_kernel() {
     # Always anchor the config session with the deterministic defconfig first
-    kernel_config_load
+    kernel_config_load "$USER_KERNEL_DEFCONFIG"
+    
 
     if [[ "$DO_MENUCONFIG" == true ]]; then
         kernel_config_edit
@@ -202,19 +222,21 @@ config_kernel() {
 
 # --- 5. Build Modules ---
 build_release() {
-    echo "--> Starting RELEASE build for $ARCH using base: $TARGET_DEFCONFIG..."
+    echo "--> Starting RELEASE build for $ARCH "
     if [[ ! -f "$KBUILD_OUT_DIR/.config" ]]; then
-        echo "--> .config missing. Initializing deterministic build with $TARGET_DEFCONFIG..."
-        kmake "$TARGET_DEFCONFIG"
+        echo "--> .config missing. Initializing deterministic build with $DEFAULT_KERNEL_DEFCONFIG..."
+        kernel_config_load "$USER_KERNEL_DEFCONFIG"
+        #kmake "$USER_KERNEL_DEFCONFIG"
     fi
     kmake -j$(nproc)
 }
 
 build_debug() {
-    echo "--> Starting DEBUG build for $ARCH using base: $TARGET_DEFCONFIG..."
+    echo "--> Starting DEBUG build for $ARCH using base: $USER_KERNEL_DEFCONFIG..."
     if [[ ! -f "$KBUILD_OUT_DIR/.config" ]]; then
-        echo "--> .config missing. Initializing deterministic build with $TARGET_DEFCONFIG..."
-        kmake "$TARGET_DEFCONFIG"
+        echo "--> .config missing. Initializing deterministic build with $USER_KERNEL_DEFCONFIG..."
+        #kmake "$USER_KERNEL_DEFCONFIG"
+        kernel_config_load "$USER_KERNEL_DEFCONFIG"
     fi
     KCFLAGS="-g -O1" kmake -j$(nproc)
 }
@@ -233,15 +255,15 @@ parse_args() {
         case $1 in
             -b|--board)                 TARGET_BOARD="$2"; shift 2 ;;
             -p|--profile)               BUILD_PROFILE="$2"; shift 2 ;;
-            -d|--defconfig)             TARGET_DEFCONFIG="$2"; shift 2 ;;
+            -d|--defconfig)             USER_KERNEL_DEFCONFIG="$2"; shift 2 ;;
             -a|--arch)                  ARCH="$2"; shift 2 ;;
             -cc|--cross-toolchain)      CROSS_COMPILE="$2"; shift 2 ;;
-            -o|--output)                OUTPUT_DIR="$2"; KBUILD_OUT_DIR="${OUTPUT_DIR}/kernel"; shift 2 ;;
+            -o|--output)                OVIRRIDE_KBUILD_OUT_DIR="$2"; shift 2 ;;
             -r|--release-build)         RELEASE_BUILD=true; shift ;;
             -c|--clean)                 DO_CLEAN=true; shift ;;
             -m|-edit|--menuconfig)      DO_MENUCONFIG=true; MODE="config"; shift ;;
             -ld|-load|--load-config)    
-                TARGET_DEFCONFIG="$2"
+                USER_KERNEL_DEFCONFIG="$2"
                 MODE="config"
                 shift 2 
                 ;;
@@ -262,7 +284,7 @@ parse_args() {
 }
 
 check_args() {
-    if [[ -z "$TARGET_DEFCONFIG" ]]; then
+    if [[ -z "$USER_KERNEL_DEFCONFIG" ]]; then
         echo "Error: Deterministic build requires a target defconfig."
         echo "Please specify a board (-b <board>) to fetch from env.json, or provide it explicitly (-d <defconfig> or -ld <defconfig>)."
         usage; exit 1

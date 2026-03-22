@@ -1,51 +1,100 @@
 #!/bin/bash
 
 PROJECT_ROOT=$(dirname "$(readlink -f "$0")")
-echo "Project Root: $PROJECT_ROOT"
-export PROJECT_ROOT
-cd $PROJECT_ROOT
 # Source your existing exception handling core
 source $PROJECT_ROOT/scripts/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
-
 # --- Configuration & Defaults ---
 JSON_CFG="$PROJECT_ROOT/env.json"
 jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
-jSON_FILE_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/json_resolve_file.sh"
+
+TARGET_BOARD="qemu_riscv64_virt_board"
+BUILD_PROFILE="rootfsOnlyBuild"
+
 DRY_RUN=false
 RUN_QEMU=false
-TARGET_BUILD_DEFCONFIG=""
+
+init(){
+    echo "init"
+
+}
+setup_environment() {
+    echo "--- Setting up Shell Environment ---"
+    echo "Project Root: $PROJECT_ROOT"
+    # 1. Export variables from the global environment section
+    # Note: Using 'env' as a temp variable to avoid conflicts
+    if [[ -z "$TARGET_BR2_DEFCONFIG" ]]; then
+        TARGET_BR2_DEFCONFIG=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.BR_DEFCONFIG")
+    fi
+
+    export PROJECT_ROOT TARGET_BOARD BUILD_PROFILE TARGET_BR2_DEFCONFIG
+
+    # 2. Export the env_exports array from the build scope
+    # We read the array and loop through it to export each string
+    while IFS= read -r line; do
+        # Evaluate variables inside the string (e.g., ${PROJECT_ROOT})
+        echo "line: $line"
+        eval "export $line"
+        echo "Exported: $line"
+    done < <($jSON_RESOLVER "$JSON_CFG" "build.env_exports[]")
+
+    echo -e "Selected Target: $TARGET_BOARD\n \
+        Build Profile: $BUILD_PROFILE\n \
+        TARGET_BR2_DEFCONFIG: $TARGET_BR2_DEFCONFIG \n \
+        PRE_BUILT_KERNEL_IMAGE: $PRE_BUILT_KERNEL_IMAGE \n"
+}
+
+
 # --- Module: Profile Execution ---
 # @description: Iterates through the build_cmds array within the selected build_profile.
-run_build_profile() {
-    local target="$1"
-    local profile="$2"
+run_cmds() {
+    local cmd_name="$1"
+    shift # Removes $1. Now $@ contains ONLY the commands.
+    local cmds=("$@") 
 
-    echo ">>> [INFO] Initiating Build Profile: $profile for Target: $target"
-    
-    # Use mapfile/readarray to fetch the command array from the resolver
-    # We assume resolver.sh handles the .join() logic and returns newline-separated commands
-    build_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.build_cmds[]")
-
-    if [[ ${#build_cmds[@]} -eq 0 ]]; then
-        echo ">>> [ERROR] No build_cmds found for profile: $profile"
-        exit 1
-    fi
-    echo -e ">>> [INFO] Full Buildroot command:\n $build_cmds " | sed -r 's/[[:space:]]{4,}/    \n  /g'
-
-    for cmd in "${build_cmds[@]}"; do
-        if [[ "$DRY_RUN" = true ]]; then
-            echo ">>> [DRY RUN] Command: $cmd"
+    for cmd in "${cmds[@]}"; do
+        # Use a local check, allowing DRY_RUN to be passed safely via the environment
+        if [[ "${DRY_RUN:-false}" == "true" ]]; then
+            echo ">>> [DRY RUN] [$cmd_name] Command: $cmd"
         else
-            echo ">>> [EXEC] $cmd"
+            #echo ">>> [EXEC] [$cmd_name] $cmd"
             eval "$cmd"
             
             # Error handling per command
             if [[ $? -ne 0 ]]; then
-                echo ">>> [ERROR] Build step failed. Terminating."
-                exit 1
+                echo ">>> [ERROR] [$cmd_name] Build step failed on: $cmd"
+                return 1 
             fi
         fi
     done
+}
+
+# How to call it:
+# build_cmds=("npm install" "npm run build")
+# run_cmds "${build_cmds[@]}"
+run_build_profile() {
+    local target="$1"
+    local profile="$2"
+
+    local pre_cmds
+    local build_cmds
+    local post_cmds
+
+    pre_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.profiles.${profile}.pre_cmds[]")
+    build_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.profiles.${profile}.build_cmds[]")
+    post_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.profiles.${profile}.post_cmds[]")
+
+    run_cmds "pre_cmds" "${pre_cmds[@]}"
+    if [[ ${#build_cmds[@]} -eq 0 ]]; then
+        echo ">>> [ERROR] No build_cmds found for profile: $profile"
+        exit 1
+    fi
+    echo ">>> [INFO] Initiating Build Profile: $profile for Target: $target"
+    echo -e ">>> [INFO] Full Buildroot command:\n $build_cmds " | sed -r 's/[[:space:]]{4,}/    \n  /g'
+    run_cmds "build_cmds" "${build_cmds[@]}"
+
+
+    run_cmds "post_cmds" "${post_cmds[@]}"
+    
 }
 
 # --- Module: QEMU Runner ---
@@ -54,7 +103,7 @@ run_qemu_logic() {
     
     if [[ "$RUN_QEMU" == true ]]; then
         local qemu_cmd
-        qemu_cmd=$($jSON_RESOLVER "$JSON_CFG" "build.${profile}.qemu_run_cmd")
+        qemu_cmd=$($jSON_RESOLVER "$JSON_CFG" "build.profiles.${profile}.qemu_run_cmd")
 
         if [[ -n "$qemu_cmd" && "$qemu_cmd" != "null" ]]; then
             echo ">>> [INFO] Launching QEMU..."
@@ -72,7 +121,7 @@ parse_args() {
         case $1 in
             -b|--target-board)  TARGET_BOARD="$2"; shift 2 ;;
             -p|--build-profile) BUILD_PROFILE="$2"; shift 2 ;; 
-            -def|--defconfig) TARGET_BUILD_DEFCONFIG="$2"; shift 2 ;;
+            -def|--defconfig) TARGET_BR2_DEFCONFIG="$2"; shift 2 ;;
             -d|--dry-run) DRY_RUN=true; shift ;;
             -r|--run-qemu) RUN_QEMU=true; shift ;;
             *) echo "Error: Unknown option '$1'"; usage; exit 1 ;;
@@ -92,32 +141,18 @@ usage() {
     echo ""
     echo "Available Build Profiles (-p):"
     # Query keys under the 'build' object, excluding 'base_options'
-    jq -r '.build | keys | .[] | select(. != "base_options")' "$JSON_CFG" | sed 's/^/  - /'
+    jq -r '.build.profiles | keys | .[] | select(. != "base_options")' "$JSON_CFG" | sed 's/^/  - /'
     echo ""
     exit 1
 }
 
 main() {
     # Defaults
-    TARGET_BOARD="qemu_riscv64_virt_board"
-    BUILD_PROFILE="rootfsOnlyBuild"
+    init
     parse_args "$@"
-    export TARGET_BOARD BUILD_PROFILE
-    export ARCH=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.ARCH")
-    TARGET_DEFCONFIG=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.ACTIVE_DEFCONFIG")
-    if [[ -n "$TARGET_BUILD_DEFCONFIG" ]]; then
-        export TARGET_DEFCONFIG=$TARGET_BUILD_DEFCONFIG
-    else
-        export TARGET_DEFCONFIG=$TARGET_DEFCONFIG
-    fi
-    PRE_BUILT_KERNEL_IMAGE=$($jSON_RESOLVER "$JSON_CFG" "build.${BUILD_PROFILE}.PRE_BUILT_KERNEL_IMAGE")
-    export PRE_BUILT_KERNEL_IMAGE=${PRE_BUILT_KERNEL_IMAGE}
-    
-    echo -e "Selected Target: $TARGET_BOARD\n \
-        ARCH: $ARCH\n \
-        Build Profile: $BUILD_PROFILE\n \
-        TARGET_DEFCONFIG: $TARGET_DEFCONFIG \n \
-        PRE_BUILT_KERNEL_IMAGE: $PRE_BUILT_KERNEL_IMAGE \n"
+    setup_environment
+
+
     ./scripts/generate_local_mk.sh "$JSON_CFG" "$BUILD_PROFILE"
 
     run_build_profile "$TARGET_BOARD" "$BUILD_PROFILE"

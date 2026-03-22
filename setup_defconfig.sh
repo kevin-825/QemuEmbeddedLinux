@@ -1,123 +1,152 @@
 #!/bin/bash
-
+# ==============================================================================
+# MODULE: config_mgr.sh
+# DESCRIPTION: Sequential Buildroot Config Manager via Docker
+# ==============================================================================
+source "./scripts/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh"
 # --- Global Variables ---
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd -P)
-export PROJECT_ROOT="$SCRIPT_DIR"
-JSON_CFG="$PROJECT_ROOT/env.json"
-jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
+export PROJECT_ROOT="${SCRIPT_DIR}"
 
-# Global paths populated by init_globals
+JSON_CFG="$PROJECT_ROOT/env.json"
+JSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
+
+# Global paths
 BUILDROOT_DIR=""
 EXTERNAL_DIR=""
 OUTPUT_DIR=""
-DOCKER_CMD=""
+BR_CMD=""
 
-# --- Module: Argument Parsing ---
-show_help() {
-    echo "Usage: $(basename "$0") <command> [config_name]"
-    echo ""
-    echo "Commands:"
-    echo "  load <name>      Load a defconfig from external/configs/ into the build environment"
-    echo "  edit             Open 'make menuconfig' in the Docker container"
-    echo "  save             Save current .config back to the currently active defconfig"
-    echo "  save-as <name>   Save current .config as a NEW defconfig in external/configs/"
-    echo "  list             List all available configs in the external tree"
+# Execution Flags
+DO_CLEAN=false
+DO_LOAD=false
+DO_MENUCONFIG=false
+DO_SAVE_CONFIG=false
+LOAD_TARGET=""
+SAVE_TARGET=""
+TARGET_BOARD=""
+BUILD_PROFILE="rootfsOnlyBuild"
+# --- Module: Initialization ---
+init_globals() {
+    export TARGET_BOARD="$TARGET_BOARD"  # Export for use in config save/load
+    export BUILD_PROFILE="$BUILD_PROFILE"
+    if [[ ! -f "$JSON_RESOLVER" ]]; then
+        echo ">>> [ERROR] Resolver not found at: $JSON_RESOLVER"
+        exit 1
+    fi
+
+    BUILDROOT_DIR=$($JSON_RESOLVER "$JSON_CFG" "environment.BUILDROOT_DIR")
+    EXTERNAL_DIR=$($JSON_RESOLVER "$JSON_CFG" "environment.EXTERNAL_DIR")
+    OUTPUT_DIR=$($JSON_RESOLVER "$JSON_CFG" "environment.OUTPUT_BASE_DIR")"/config_manager"
+    
+    DOCKER_WRAPPER=$("$JSON_RESOLVER" "$JSON_CFG" "environment.DOCKER_WRAPPER")
+    echo "DOCKER_WRAPPER: $DOCKER_WRAPPER"
+    # Prevent 'null' string execution if the key is missing in json
+    [[ "$DOCKER_WRAPPER" == "null" ]] && DOCKER_WRAPPER=""
+    #if [[ "$DOCKER_WRAPPER" != *"-it"* ]]; then
+    #    DOCKER_WRAPPER="${DOCKER_WRAPPER/run /run -it }"
+    #fi
+
+    BR_CMD="$DOCKER_WRAPPER make -C $BUILDROOT_DIR O=$OUTPUT_DIR BR2_EXTERNAL=$EXTERNAL_DIR"
+   
+    echo "BuildRoot Command: $BR_CMD"
+    mkdir -p "$OUTPUT_DIR"
 }
 
+# --- Module: Core Functions ---
+defconfig_clean() {
+    echo ">>> [CLEAN] Wiping output directory: $OUTPUT_DIR"
+    rm -rf "$OUTPUT_DIR"/*
+}
+
+defconfig_load() {
+    local cfg="$1"
+    if [[ -z "$cfg" ]]; then
+        echo ">>> [ERROR] No config specified for loading."
+        exit 1
+    fi
+    echo ">>> [LOAD] Loading $cfg..."
+    eval "$BR_CMD $cfg"
+}
+
+defconfig_menuconfig() {
+    echo ">>> [EDIT] Launching menuconfig..."
+    eval "$BR_CMD menuconfig"
+}
+
+defconfig_save() {
+    local dest_name="$1"
+    
+    if [[ -z "$dest_name" ]]; then
+        if [[ -f "$OUTPUT_DIR/.config" ]]; then
+            dest_name=$(grep "^BR2_DEFCONFIG=" "$OUTPUT_DIR/.config" | cut -d '=' -f 2 | tr -d '"' | xargs basename)
+        fi
+    fi
+
+    if [[ -z "$dest_name" ]]; then
+        echo ">>> [ERROR] Could not auto-detect active config. Specify a name."
+        exit 1
+    fi
+
+    [[ "$dest_name" != *"_defconfig" ]] && dest_name="${dest_name}_defconfig"
+    local save_path="$EXTERNAL_DIR/configs/$dest_name"
+    
+    echo ">>> [SAVE] Saving minimal defconfig to $save_path..."
+    eval "$BR_CMD savedefconfig BR2_DEFCONFIG=\"$save_path\""
+}
+
+show_help() {
+    echo "Usage: $(basename "$0") [options]"
+    echo "Options can be chained (e.g., -l my_defconfig -m -s)"
+    echo "  -c | --clean                          Wipe output directory"
+    echo "  -l | -load | --load <name>            Load a defconfig"
+    echo "  -m | -edit | --menuconfig             Open menuconfig"
+    echo "  -s | -save | --save [name]            Save config (name optional)"
+    exit 0
+}
+
+# --- Module: Argument Parsing ---
 parse_args() {
     if [[ $# -eq 0 ]]; then
         show_help
-        exit 1
     fi
 
-    COMMAND="$1"
-    TARGET_CONFIG="$2"
-}
-
-# --- Module: Initialization ---
-init_globals() {
-    BUILDROOT_DIR=$($jSON_RESOLVER "$JSON_CFG" "environment.BUILDROOT_DIR")
-    EXTERNAL_DIR=$($jSON_RESOLVER "$JSON_CFG" "environment.EXTERNAL_DIR")
-    # Using a generic config-management output folder to avoid clashing with profile builds
-    OUTPUT_DIR=$($jSON_RESOLVER "$JSON_CFG" "environment.OUTPUT_BASE_DIR")"/config_manager"
-    
-    # We need an interactive Docker wrapper for menuconfig (adding -it)
-    # Fetch the raw wrapper and ensure it has interactive flags
-    local raw_docker=$($jSON_RESOLVER "$JSON_CFG" "environment.DOCKER_WRAPPER")
-    if [[ "$raw_docker" != *"-it"* ]]; then
-        DOCKER_CMD="${raw_docker/run --rm/run --rm -it}"
-    else
-        DOCKER_CMD="$raw_docker"
-    fi
-
-    mkdir -p "$OUTPUT_DIR"
-
-    echo "Initialized global paths:"
-    echo "  BUILDROOT_DIR: $BUILDROOT_DIR"
-    echo "  EXTERNAL_DIR: $EXTERNAL_DIR"
-    echo "  OUTPUT_DIR: $OUTPUT_DIR"
-    echo "  DOCKER_CMD: $DOCKER_CMD"
-    echo ""
-
-}
-
-# --- Module: Commands ---
-
-list_configs() {
-    echo ">>> Available defconfigs in $EXTERNAL_DIR/configs/:"
-    ls -1 "$EXTERNAL_DIR/configs/" | grep "_defconfig$" | sed 's/^/  - /'
-}
-
-load_config() {
-    if [[ -z "$TARGET_CONFIG" ]]; then
-        echo ">>> [ERROR] Please specify a config name (e.g., my_qemu_riscv64_virt_defconfig)"
-        exit 1
-    fi
-
-    local config_path="$EXTERNAL_DIR/configs/$TARGET_CONFIG"
-    if [[ ! -f "$config_path" ]]; then
-        echo ">>> [ERROR] Config not found: $config_path"
-        exit 1
-    fi
-
-    echo ">>> [CONFIG] Loading $TARGET_CONFIG..."
-    # We pass ONLY the filename so Buildroot's %_defconfig rule works via BR2_EXTERNAL
-    eval $DOCKER_CMD make -C "$BUILDROOT_DIR" O="$OUTPUT_DIR" BR2_EXTERNAL="$EXTERNAL_DIR" "$TARGET_CONFIG"
-    echo ">>> [SUCCESS] Loaded. Ready for 'edit'."
-}
-
-edit_config() {
-    echo ">>> [CONFIG] Launching menuconfig..."
-    eval $DOCKER_CMD make -C "$BUILDROOT_DIR" O="$OUTPUT_DIR" BR2_EXTERNAL="$EXTERNAL_DIR" menuconfig
-}
-
-save_config() {
-    # If a name is provided, use it (save-as). Otherwise, try to extract the active one from .config
-    local dest_name="$TARGET_CONFIG"
-    
-    if [[ -z "$dest_name" ]]; then
-        # Read the current BR2_DEFCONFIG from the hidden .config file
-        echo ">>> [INFO] No config name provided. Attempting to auto-detect active defconfig from .config..."
-        local current_defconfig=$(grep "^BR2_DEFCONFIG=" "$OUTPUT_DIR/.config" | cut -d '=' -f 2 | tr -d '"')
-        if [[ -z "$current_defconfig" ]]; then
-            echo ">>> [ERROR] Could not determine active defconfig. Use 'save-as <name>' instead."
-            exit 1
-        fi
-        dest_name=$(basename "$current_defconfig")
-    fi
-
-    # Ensure it has the _defconfig suffix
-    if [[ "$dest_name" != *"_defconfig" ]]; then
-        dest_name="${dest_name}_defconfig"
-    fi
-
-    local save_path="$EXTERNAL_DIR/configs/$dest_name"
-    
-    echo ">>> [CONFIG] Saving minimal defconfig to $save_path..."
-    # Force the savedefconfig target to write to our specific path
-    eval $DOCKER_CMD make -C "$BUILDROOT_DIR" O="$OUTPUT_DIR" BR2_EXTERNAL="$EXTERNAL_DIR" BR2_DEFCONFIG="$save_path" savedefconfig
-    
-    echo ">>> [SUCCESS] Saved to $dest_name"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -b|--board)                 TARGET_BOARD="$2"; shift 2 ;;
+            -p|--profile)               BUILD_PROFILE="$2"; shift 2 ;;
+            -c|--clean)
+                DO_CLEAN=true
+                shift
+                ;;
+            -l|-ld|-load|--load)
+                DO_LOAD=true
+                LOAD_TARGET="$2"
+                shift 2
+                ;;
+            -m|-e|-edit|--menuconfig)
+                DO_MENUCONFIG=true
+                shift
+                ;;
+            -s|-save|--save)
+                DO_SAVE_CONFIG=true
+                # Check if next argument exists and is not another flag
+                if [[ -n "$2" && "$2" != -* ]]; then
+                    SAVE_TARGET="$2"
+                    shift 2
+                else
+                    shift 1
+                fi
+                ;;
+            -h|--help)
+                show_help
+                ;;
+            *)
+                echo ">>> [ERROR] Unknown option: $1"
+                exit 1
+                ;;
+        esac
+    done
 }
 
 # --- Main Execution ---
@@ -125,14 +154,24 @@ main() {
     parse_args "$@"
     init_globals
 
-    case "$COMMAND" in
-        list)    list_configs ;;
-        load)    load_config ;;
-        edit)    edit_config ;;
-        save)    save_config ;;
-        save-as) save_config ;; # Reuses save_config logic
-        *)       echo ">>> [ERROR] Unknown command: $COMMAND"; show_help; exit 1 ;;
-    esac
+    # Execute sequentially based on flags
+    if [[ "$DO_CLEAN" == true ]]; then
+        defconfig_clean
+    fi
+
+    if [[ "$DO_LOAD" == true ]]; then
+        defconfig_load "$LOAD_TARGET"
+    fi
+
+    if [[ "$DO_MENUCONFIG" == true ]]; then
+        defconfig_menuconfig
+    fi
+
+    if [[ "$DO_SAVE_CONFIG" == true ]]; then
+        defconfig_save "$SAVE_TARGET"
+    fi
+    
+    echo "--> Configuration operations complete."
 }
 
 main "$@"

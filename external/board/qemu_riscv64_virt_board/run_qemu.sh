@@ -16,8 +16,10 @@ run_qemu() {
         -m 1024M
         -nographic
         -kernel "$kernel_path"
-        -drive file="$sdcard_path",format=raw,id=hd0
+        -drive file="$sdcard_path",format=raw,id=hd0,if=none
         -device virtio-blk-device,drive=hd0
+        -netdev user,id=net0
+        -device virtio-net-device,netdev=net0
         -append "root=/dev/vda2 rw rootwait console=ttyS0 earlycon=sbi"
         "$@" # <--- Inject all passed-through flags here natively!
     )

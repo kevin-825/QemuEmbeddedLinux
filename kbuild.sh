@@ -261,8 +261,8 @@ parse_args() {
             -o|--output)                OVIRRIDE_KBUILD_OUT_DIR="$2"; shift 2 ;;
             -r|--release-build)         RELEASE_BUILD=true; shift ;;
             -c|--clean)                 DO_CLEAN=true; shift ;;
-            -m|-edit|--menuconfig)      DO_MENUCONFIG=true; MODE="config"; shift ;;
-            -ld|-load|--load-config)    
+            -m|-e|-edit|--menuconfig)      DO_MENUCONFIG=true; MODE="config"; shift ;;
+            -l|-ld|-load|--load-config)    
                 USER_KERNEL_DEFCONFIG="$2"
                 MODE="config"
                 shift 2 

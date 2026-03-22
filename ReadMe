@@ -12,6 +12,9 @@ to build linux kernel only:
 ./kbuild.sh -b qemu_aarch64_virt_board -d ./external/board/qemu_aarch64_virt_board/kernel_configs/my_linux_DEBUG_defconfig -m -s  -p rootfsOnlyBuild
 
 
+to configure buildroot:
+./setup_defconfig.sh -b qemu_aarch64_virt_board  -c -ld my_qemu_aarch64_virt_defconfig  -m -s
+./setup_defconfig.sh -b qemu_riscv64_virt_board  -c -ld my_qemu_riscv64_virt_defconfig -m -s
 
 
 

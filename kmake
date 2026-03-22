@@ -1,0 +1,22 @@
+
+
+
+kmake() {
+    # Using "$@" perfectly preserves arguments with spaces
+    local cmd=(make -C "$KERNEL_SRC_PATH" O="$KERNEL_BUILD_OUT_PATH" "$@")
+    echo "[exec] ${cmd[*]}"
+    
+    # Uncomment to actually run the command
+    #"${cmd[@]}" 
+}
+
+
+
+main() {
+    echo "[Info]  kernel make wrapper starting ... "
+    echo "[Info]  basic args: KERNEL_SRC_PATH=${KERNEL_SRC_PATH}    KERNEL_BUILD_OUT_PATH=${KERNEL_BUILD_OUT_PATH}"
+    check_args
+    kmake "$@"
+}
+
+main "$@"

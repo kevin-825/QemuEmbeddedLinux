@@ -56,7 +56,7 @@ run_cmds() {
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
             echo ">>> [DRY RUN] [$cmd_name] Command: $cmd"
         else
-            #echo ">>> [EXEC] [$cmd_name] $cmd"
+            echo ">>> [EXEC] [$cmd_name] $cmd"
             eval "$cmd"
             
             # Error handling per command

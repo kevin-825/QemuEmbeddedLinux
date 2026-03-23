@@ -30,6 +30,8 @@ JSON_RESOLVER="./scripts/json_resolve_scripts/resolver.sh"
 JSON_CFG="./env.json"
 AUTO_BACKUP_DIR="${HOME}/kbuild_backups"
 # --- Actions ---
+KMAKE_OPT=""
+DO_KMAKE=false
 DO_MENUCONFIG=false
 DO_SAVE_CONFIG=false
 DO_CLEAN=false
@@ -110,6 +112,7 @@ usage() {
     echo "  -o, --output <dir>           Ovirride KBUILD_OUT_DIR, used to apply a defconfig to a previously defconfig-loaded outputdir, result in a merged .config "
     echo "  -r, --release-build          Optimized release build"
     echo "  -c, --clean                  Wipe the active .config to force a fresh defconfig load"
+    echo "  -kmk,-kmake <args to kmake(make)>  pass args to kmake."
     echo "  -m, -edit, --menuconfig      Open kernel configuration menu"
     echo "  -s, -save, --savedefconfig [name] Save config to a minimal defconfig (optional name)"
     echo "  -ld, -load, --load-config <name>  Load a specific defconfig and enter config mode"
@@ -118,9 +121,9 @@ usage() {
 
 # --- 3. Core Engine ---
 kmake() {
-    local cmd=($DOCKER_WRAPPER make -C "$KERNEL_SRC" O="$KBUILD_OUT_DIR" ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" )
-    echo "[exec] ${cmd[*]} $*"
-    "${cmd[@]}" "$@"
+    local cmd=($DOCKER_WRAPPER make -C "$KERNEL_SRC" O="$KBUILD_OUT_DIR" ARCH="$ARCH" CROSS_COMPILE="$CROSS_COMPILE" "$@")
+    echo "[exec] ${cmd[*]}"
+    "${cmd[@]}" 
 }
 
 # --- 4. Configuration Management Modules ---
@@ -208,7 +211,10 @@ config_kernel() {
     # Always anchor the config session with the deterministic defconfig first
     kernel_config_load "$USER_KERNEL_DEFCONFIG"
     
-
+    if [[ "$DO_KMAKE" == true ]]; then
+        echo "kmake called with args: $KMAKE_OPT"
+        kmake "$KMAKE_OPT"
+    fi
     if [[ "$DO_MENUCONFIG" == true ]]; then
         kernel_config_edit
     fi
@@ -261,7 +267,8 @@ parse_args() {
             -o|--output)                OVIRRIDE_KBUILD_OUT_DIR="$2"; shift 2 ;;
             -r|--release-build)         RELEASE_BUILD=true; shift ;;
             -c|--clean)                 DO_CLEAN=true; shift ;;
-            -m|-e|-edit|--menuconfig)      DO_MENUCONFIG=true; MODE="config"; shift ;;
+            -m|-e|-edit|--menuconfig)   DO_MENUCONFIG=true; MODE="config"; shift ;;
+            -k|-kmk|--kmake)            KMAKE_OPT=$2; DO_KMAKE=true; MODE="config"; shift 2;;
             -l|-ld|-load|--load-config)    
                 USER_KERNEL_DEFCONFIG="$2"
                 MODE="config"

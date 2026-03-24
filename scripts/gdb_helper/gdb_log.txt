@@ -1,52 +1,211 @@
-The target architecture is set to "riscv:rv64".
-❌️ No symbol table is loaded.  Use the "file" command.
-❌️ No symbol table is loaded.  Use the "file" command.
+The target architecture is set to "aarch64".
+add symbol table from file "/mnt/wsl/ramdisk5/out/qemu_aarch64_virt_board/kernel/my_linux_arm64_virt_DEBUG_defconfig/vmlinux"
 [
 ] Connecting to QEMU on localhost:1234...
-⚠️ warning: No executable has been specified and target does not support
+warning: No executable has been specified and target does not support
 determining executable automatically.  Try using the "file" command.
 
 =======================================================
-[RISC-V 64] CPU Paused. Context:
+[ARM64] CPU Paused. Context:
 [
-] Supervisor Mode (S-Mode) CSRs [Linux Kernel State]:
-scause         0x8000000000000005	0x8000000000000005
-sepc           0xffffffff80bb1c94	0xffffffff80bb1c94
-stval          0x0	0x0
-stvec          0xffffffff80bbca0c	0xffffffff80bbca0c
-sstatus        0x200000020	0x200000020
-satp           0xa006f00000082fab	0xa006f00000082fab
-ra             0xffffffff80bb1c88	0xffffffff80bb1c88
-sp             0xffffffff81803dc0	0xffffffff81803dc0
-fp             0xffffffff81803dd0	0xffffffff81803dd0
-tp             0xffffffff8180e1c0	0xffffffff8180e1c0
-gp             0xffffffff81a20250	0xffffffff81a20250
-a0             0x3ac	0x3ac
-a1             0x0	0x0
-a2             0xffffffff80e44e48	0xffffffff80e44e48
-a3             0x0	0x0
-a4             0xff600000bf198000	0xff600000bf198000
-a5             0xff6000003ffdce48	0xff6000003ffdce48
-a6             0xff6000003ffdce48	0xff6000003ffdce48
-a7             0x4000000000000000	0x4000000000000000
-t0             0x0	0x0
-t1             0xffffffffc0000051	0xffffffffc0000051
-t2             0xff600000021b48d0	0xff600000021b48d0
-t3             0x100	0x100
-t4             0xff600000021b48c0	0xff600000021b48c0
-t5             0x1c9	0x1c9
-t6             0x1c9	0x1c9
+] Exception Level 1 (EL1) System Registers [Linux State]:
+ESR_EL1        0x0                 0x0
+ELR_EL1        0x0                 0x0
+FAR_EL1        0x0                 0x0
+VBAR_EL1       0x0                 0x0
+SPSR_EL1       0x0                 0x0
+[
+] General Purpose Registers:
+x30            0x0                 0x0
+x29            0x0                 0x0
+x0             0x0                 0x0
+x1             0x0                 0x0
+x2             0x0                 0x0
+x3             0x0                 0x0
+x4             0x0                 0x0
+x5             0x0                 0x0
+x6             0x0                 0x0
+x7             0x0                 0x0
+x9             0x0                 0x0
+x10            0x0                 0x0
+x11            0x0                 0x0
+x12            0x0                 0x0
+x13            0x0                 0x0
+x14            0x0                 0x0
+x15            0x0                 0x0
+sp             0x0                 0x0
+pc             0x40000000          0x40000000
+cpsr           0x400003c9          [ SP EL=2 F I A D BTYPE=0 Z ]
 =======================================================
-0xffffffff80baf9d8 in ?? ()
+0x0000000040000000 in ?? ()
 1: x/i $pc
-=> 0xffffffff80baf9d8:	ld	ra,8(sp)
-add symbol table from file "/mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux"
+=> 0x40000000:	ldr	x0, 0x40000018
   Num  What                   Description       
 * 1    remote localhost:1234  Remote target using gdb-specific protocol 
-Hardware assisted breakpoint 1 at 0xffffffff80c00738
-Hardware assisted breakpoint 2 at 0xffffffff80002b46
-Reading symbols from /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux...
-(No debugging symbols found in /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux)
-Detaching from program: /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux, process 1
-Ending remote debugging.
-[Inferior 1 (process 1) detached]
+Hardware assisted breakpoint 1 at 0xffff8000811b07c4: file /mnt/wsl/ramdisk5/linux/init/main.c, line 1007.
+Hardware assisted breakpoint 2 at 0xffff800080015bd8: file /mnt/wsl/ramdisk5/linux/kernel/panic.c, line 623.
+
+CPU#0
+ PC=0000000040000000 X00=0000000000000000 X01=0000000000000000
+X02=0000000000000000 X03=0000000000000000 X04=0000000000000000
+X05=0000000000000000 X06=0000000000000000 X07=0000000000000000
+X08=0000000000000000 X09=0000000000000000 X10=0000000000000000
+X11=0000000000000000 X12=0000000000000000 X13=0000000000000000
+X14=0000000000000000 X15=0000000000000000 X16=0000000000000000
+X17=0000000000000000 X18=0000000000000000 X19=0000000000000000
+X20=0000000000000000 X21=0000000000000000 X22=0000000000000000
+X23=0000000000000000 X24=0000000000000000 X25=0000000000000000
+X26=0000000000000000 X27=0000000000000000 X28=0000000000000000
+X29=0000000000000000 X30=0000000000000000  SP=0000000000000000
+PSTATE=00000000400003c9 -Z-- NS EL2h     FPCR=00000000 FPSR=00000000
+Q00=0000000000000000:0000000000000000 Q01=0000000000000000:0000000000000000
+Q02=0000000000000000:0000000000000000 Q03=0000000000000000:0000000000000000
+Q04=0000000000000000:0000000000000000 Q05=0000000000000000:0000000000000000
+Q06=0000000000000000:0000000000000000 Q07=0000000000000000:0000000000000000
+Q08=0000000000000000:0000000000000000 Q09=0000000000000000:0000000000000000
+Q10=0000000000000000:0000000000000000 Q11=0000000000000000:0000000000000000
+Q12=0000000000000000:0000000000000000 Q13=0000000000000000:0000000000000000
+Q14=0000000000000000:0000000000000000 Q15=0000000000000000:0000000000000000
+Q16=0000000000000000:0000000000000000 Q17=0000000000000000:0000000000000000
+Q18=0000000000000000:0000000000000000 Q19=0000000000000000:0000000000000000
+Q20=0000000000000000:0000000000000000 Q21=0000000000000000:0000000000000000
+Q22=0000000000000000:0000000000000000 Q23=0000000000000000:0000000000000000
+Q24=0000000000000000:0000000000000000 Q25=0000000000000000:0000000000000000
+Q26=0000000000000000:0000000000000000 Q27=0000000000000000:0000000000000000
+Q28=0000000000000000:0000000000000000 Q29=0000000000000000:0000000000000000
+Q30=0000000000000000:0000000000000000 Q31=0000000000000000:0000000000000000
+[
+] Exception Level 3 (EL3) System Registers [Firmware/TrustZone State]:
+ESR_EL3        0x0                 0x0
+ELR_EL3        0x0                 0x0
+FAR_EL3        0x0                 0x0
+VBAR_EL3       0x0                 0x0
+SPSR_EL3       0x0                 0x0
+[
+] Exception Level 2 (EL2) System Registers [Hypervisor State]:
+ESR_EL2        0x0                 0x0
+ELR_EL2        0x0                 0x0
+FAR_EL2        0x0                 0x0
+VBAR_EL2       0x0                 0x0
+SPSR_EL2       0x0                 0x0
+Continuing.
+
+=======================================================
+[ARM64] CPU Paused. Context:
+[
+] Exception Level 1 (EL1) System Registers [Linux State]:
+ESR_EL1        0x0                 0x0
+ELR_EL1        0x0                 0x0
+FAR_EL1        0x1                 0x1
+VBAR_EL1       0xffff800080010800  0xffff800080010800
+SPSR_EL1       0x0                 0x0
+[
+] General Purpose Registers:
+x30            0xffff8000811b9124  0xffff8000811b9124
+x29            0xffff800081353fe8  0xffff800081353fe8
+x0             0xbadca11           0xbadca11
+x1             0x0                 0x0
+x2             0xfffffffffffffff0  0xfffffffffffffff0
+x3             0x413a4000          0x413a4000
+x4             0xffff80003fe00000  0xffff80003fe00000
+x5             0xffff800081121000  0xffff800081121000
+x6             0x0                 0x0
+x7             0x0                 0x0
+x9             0x0                 0x0
+x10            0x0                 0x0
+x11            0x0                 0x0
+x12            0x0                 0x0
+x13            0x0                 0x0
+x14            0x0                 0x0
+x15            0x0                 0x0
+sp             0xffff800081353ec0  0xffff800081353ec0
+pc             0xffff8000811b07c4  0xffff8000811b07c4 <start_kernel>
+cpsr           0x600003c5          [ SP EL=1 F I A D BTYPE=0 C Z ]
+=======================================================
+
+Breakpoint 1, start_kernel () at /mnt/wsl/ramdisk5/linux/init/main.c:1007
+1007		char *command_line;
+1: x/i $pc
+=> 0xffff8000811b07c4 <start_kernel>:	paciasp
+2: x/i $pc
+=> 0xffff8000811b07c4 <start_kernel>:	paciasp
+[
+] Exception Level 2 (EL2) System Registers [Hypervisor State]:
+ESR_EL2        0x5a000000          0x5a000000
+ELR_EL2        0xffff80008003866c  0xffff80008003866c
+FAR_EL2        0x2                 0x2
+VBAR_EL2       0x40ed5000          0x40ed5000
+SPSR_EL2       0x600003c5          0x600003c5
+[
+] Exception Level 3 (EL3) System Registers [Firmware/TrustZone State]:
+ESR_EL3        0x0                 0x0
+ELR_EL3        0x0                 0x0
+FAR_EL3        0x0                 0x0
+VBAR_EL3       0x0                 0x0
+SPSR_EL3       0x0                 0x0
+Continuing.
+
+Program received signal SIGINT, Interrupt.
+
+=======================================================
+[ARM64] CPU Paused. Context:
+ESR_EL1 Decode: [0x56000000] -> SVC instruction execution (Syscall)
+[
+] Exception Level 1 (EL1) System Registers [Linux State]:
+ESR_EL1        0x56000000          0x56000000
+ELR_EL1        0xffff800080cc70b0  0xffff800080cc70b0
+FAR_EL1        0xaaaae315a668      0xaaaae315a668
+VBAR_EL1       0xffff800080010800  0xffff800080010800
+SPSR_EL1       0x60000005          0x60000005
+[
+] General Purpose Registers:
+x30            0xffff800080cc6ffc  0xffff800080cc6ffc
+x29            0xffff800081353d90  0xffff800081353d90
+x0             0x5                 0x5
+x1             0xffff00003fdd11c0  0xffff00003fdd11c0
+x2             0x3b1               0x3b1
+x3             0x0                 0x0
+x4             0x4000000000000000  0x4000000000000000
+x5             0xffff80008135e998  0xffff80008135e998
+x6             0xffff00003fdcf040  0xffff00003fdcf040
+x7             0x1                 0x1
+x9             0xffff800081353d00  0xffff800081353d00
+x10            0xaa0               0xaa0
+x11            0xc0                0xc0
+x12            0x0                 0x0
+x13            0x1                 0x1
+x14            0x96                0x96
+x15            0x1310b1b5          0x1310b1b5
+sp             0xffff800081353d90  0xffff800081353d90
+pc             0xffff800080cc6fe8  0xffff800080cc6fe8 <cpu_do_idle+8>
+cpsr           0x600000c5          [ SP EL=1 F I BTYPE=0 C Z ]
+=======================================================
+cpu_do_idle () at /mnt/wsl/ramdisk5/linux/arch/arm64/kernel/idle.c:32
+32		arm_cpuidle_restore_irq_context(&context);
+1: x/i $pc
+=> 0xffff800080cc6fe8 <cpu_do_idle+8>:	ret
+2: x/i $pc
+=> 0xffff800080cc6fe8 <cpu_do_idle+8>:	ret
+3: x/i $pc
+=> 0xffff800080cc6fe8 <cpu_do_idle+8>:	ret
+[
+] Exception Level 3 (EL3) System Registers [Firmware/TrustZone State]:
+ESR_EL3        0x0                 0x0
+ELR_EL3        0x0                 0x0
+FAR_EL3        0x0                 0x0
+VBAR_EL3       0x0                 0x0
+SPSR_EL3       0x0                 0x0
+[
+] Exception Level 2 (EL2) System Registers [Hypervisor State]:
+ESR_EL2        0x5a000000          0x5a000000
+ELR_EL2        0xffff80008006cb48  0xffff80008006cb48
+FAR_EL2        0x2                 0x2
+VBAR_EL2       0xef2c80ed9800      0xef2c80ed9800
+SPSR_EL2       0x80000005          0x80000005
+[
+] Exception Level 1 (EL1) System Registers [Linux State]:
+ESR_EL1        0x56000000          0x56000000
+ELR_EL1        0xffff800080cc70b0  0xffff800080cc70b0
+FAR_EL1        0xaaaae315a668      0xaaaae315a668
+VBAR_EL1       0xffff800080010800  0xffff800080010800
+SPSR_EL1       0x60000005          0x60000005

@@ -15,7 +15,7 @@ run_qemu_arm64() {
 
     # 1. Base Machine Configuration
     local base_args=(
-        -M virt
+        -M virt,virtualization=on,secure=on
         -cpu cortex-a53
         -m 1024M
         -nographic
@@ -26,7 +26,7 @@ run_qemu_arm64() {
     local boot_args=()
     if [[ "$(basename "$kernel_path")" == *"Image"* ]]; then
         echo ">>> [INFO] Direct Linux boot detected. Injecting bootargs."
-        boot_args=( -append "root=/dev/vda2 rw rootwait console=ttyAMA0" )
+        boot_args=( -append "root=/dev/vda2 rw rootwait console=ttyAMA0 nokaslr" )
     else
         echo ">>> [INFO] Bootloader detected. Delegating bootargs to extlinux.conf."
     fi

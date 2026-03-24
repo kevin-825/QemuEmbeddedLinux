@@ -3,5 +3,50 @@ The target architecture is set to "riscv:rv64".
 ❌️ No symbol table is loaded.  Use the "file" command.
 [
 ] Connecting to QEMU on localhost:1234...
-❌️ ./scripts/gdbinit:44: Error in sourced command file:
-could not connect: Connection timed out.
+⚠️ warning: No executable has been specified and target does not support
+determining executable automatically.  Try using the "file" command.
+
+=======================================================
+[RISC-V 64] CPU Paused. Context:
+[
+] Supervisor Mode (S-Mode) CSRs [Linux Kernel State]:
+scause         0x8000000000000005	0x8000000000000005
+sepc           0xffffffff80bb1c94	0xffffffff80bb1c94
+stval          0x0	0x0
+stvec          0xffffffff80bbca0c	0xffffffff80bbca0c
+sstatus        0x200000020	0x200000020
+satp           0xa006f00000082fab	0xa006f00000082fab
+ra             0xffffffff80bb1c88	0xffffffff80bb1c88
+sp             0xffffffff81803dc0	0xffffffff81803dc0
+fp             0xffffffff81803dd0	0xffffffff81803dd0
+tp             0xffffffff8180e1c0	0xffffffff8180e1c0
+gp             0xffffffff81a20250	0xffffffff81a20250
+a0             0x3ac	0x3ac
+a1             0x0	0x0
+a2             0xffffffff80e44e48	0xffffffff80e44e48
+a3             0x0	0x0
+a4             0xff600000bf198000	0xff600000bf198000
+a5             0xff6000003ffdce48	0xff6000003ffdce48
+a6             0xff6000003ffdce48	0xff6000003ffdce48
+a7             0x4000000000000000	0x4000000000000000
+t0             0x0	0x0
+t1             0xffffffffc0000051	0xffffffffc0000051
+t2             0xff600000021b48d0	0xff600000021b48d0
+t3             0x100	0x100
+t4             0xff600000021b48c0	0xff600000021b48c0
+t5             0x1c9	0x1c9
+t6             0x1c9	0x1c9
+=======================================================
+0xffffffff80baf9d8 in ?? ()
+1: x/i $pc
+=> 0xffffffff80baf9d8:	ld	ra,8(sp)
+add symbol table from file "/mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux"
+  Num  What                   Description       
+* 1    remote localhost:1234  Remote target using gdb-specific protocol 
+Hardware assisted breakpoint 1 at 0xffffffff80c00738
+Hardware assisted breakpoint 2 at 0xffffffff80002b46
+Reading symbols from /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux...
+(No debugging symbols found in /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux)
+Detaching from program: /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/kernel/my_linux_DEBUG_defconfig/vmlinux, process 1
+Ending remote debugging.
+[Inferior 1 (process 1) detached]

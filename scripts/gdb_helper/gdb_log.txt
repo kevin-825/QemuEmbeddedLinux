@@ -1,0 +1,7 @@
+The target architecture is set to "riscv:rv64".
+❌️ No symbol table is loaded.  Use the "file" command.
+❌️ No symbol table is loaded.  Use the "file" command.
+[
+] Connecting to QEMU on localhost:1234...
+❌️ ./scripts/gdbinit:44: Error in sourced command file:
+could not connect: Connection timed out.

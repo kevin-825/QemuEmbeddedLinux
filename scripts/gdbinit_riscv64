@@ -7,15 +7,15 @@ shell pwd
 add-auto-load-safe-path /mnt/wsl/ramdisk5/linux/scripts/gdb/vmlinux-gdb.py
 source ./scripts/gdb_helper/global_setup.gdb
 source ./scripts/gdb_helper/linux_macros.gdb
-#source ./scripts/gdb_helper/arch_riscv64.gdb
-source ./scripts/gdb_helper/arch_arm64.gdb
+source ./scripts/gdb_helper/arch_riscv64.gdb
+#source ./scripts/gdb_helper/arch_arm64.gdb
 
 # 2. Connect to the Target
 
 
 define rl
     # Reloads the root playbook dynamically
-    source ./gdbinit_aarch64
+    source ./gdbinit_riscv64
     echo [\n] Dynamic Playbook Reloaded!\n
 end
 
@@ -44,7 +44,7 @@ end
 
 
 
-eval "add-symbol-file %s", $arm_prog0
+eval "add-symbol-file %s", $rv_prog0
 cn
 
 

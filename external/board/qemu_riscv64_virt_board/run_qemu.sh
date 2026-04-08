@@ -20,13 +20,17 @@ run_qemu() {
         -device virtio-blk-device,drive=hd0
         -netdev user,id=net0
         -device virtio-net-device,netdev=net0
-        -append "root=/dev/vda2 rw rootwait console=ttyS0 earlycon=sbi"
+        -append "root=/dev/vda2 rw rootwait initcall_debug console=ttyS0 earlycon=sbi"
         "$@" # <--- Inject all passed-through flags here natively!
     )
 
     echo ">>> [EXEC] Booting QEMU with extra flags: $@"
     echo "----------------------------------------------------------------------"
-    
+    echo ">>> [INFO] Final QEMU arguments:"
+    for arg in "${qemu_args[@]}"; do
+        echo "  $arg"
+    done
+    echo "----------------------------------------------------------------------"
     qemu-system-riscv64 "${qemu_args[@]}"
 }
 

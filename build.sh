@@ -9,7 +9,7 @@ jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
 
 TARGET_BOARD="qemu_riscv64_virt_board"
 BUILD_PROFILE="rootfsOnlyBuild"
-
+BUILD_KERNEL=false
 DRY_RUN=false
 RUN_QEMU=false
 RUN_QEMU_ONLY=false
@@ -90,6 +90,10 @@ run_build_profile() {
     post_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.profiles.${profile}.post_cmds[]")
 
     run_cmds "pre_cmds" "${pre_cmds[@]}"
+    if [[ "$BUILD_KERNEL" == true ]]; then
+        kernel_build_cmds=$($jSON_RESOLVER "$JSON_CFG" "build.profiles.${profile}.kernel_build_cmds[]")
+        run_cmds "kernel_build_cmds" "${kernel_build_cmds[@]}"
+    fi
     if [[ ${#build_cmds[@]} -eq 0 ]]; then
         echo ">>> [ERROR] No build_cmds found for profile: $profile"
         exit 1
@@ -154,6 +158,10 @@ parse_args() {
                 shift
                 QEMU_ARGS=("$@")
                 break
+                ;;
+            -k|--build-kernel) 
+                BUILD_KERNEL=true
+                shift
                 ;;
             *) echo "Error: Unknown option '$1'"; usage; exit 1 ;;
         esac

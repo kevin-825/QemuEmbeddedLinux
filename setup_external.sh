@@ -106,32 +106,18 @@ EOF
 generate_board_configs() {
     echo ">>> [INIT] Generating board configurations..."
     local target_keys=$(jq -r '.targets | keys[]' "$JSON_CFG")
-    
+
     for target in $target_keys; do
+        echo ">>> [INIT] Setting up board configuration for target: $target"
         mkdir -p "$EXTERNAL_PATH/board/$target/overlay"
-        local post_img="$EXTERNAL_PATH/board/$target/post-image.sh"
-        if [[ ! -f "$post_img" ]]; then
-            cat <<EOF > "$post_img"
-#!/bin/bash
-echo "Finalizing images for $target..."
-EOF
-            chmod +x "$post_img"
-        fi
+        mkdir -p "$EXTERNAL_PATH/board/$target/kernel_configs"
+        #touch "$EXTERNAL_PATH/board/$target/genimage.cfg"
+        #touch  "$EXTERNAL_PATH/board/$target/extlinux.conf"
+        #local run_qemu="$EXTERNAL_PATH/board/$target/run_qemu.sh"
+        #local post_img="$EXTERNAL_PATH/board/$target/post-image.sh"
     done
 }
 
-scaffold_example_packages() {
-    echo ">>> [INIT] Scaffolding example packages..."
-    # Create the raw src directories, then let the sync engine generate the glue
-    mkdir -p "$EXTERNAL_PATH/package/apps/example_app/src"
-    mkdir -p "$EXTERNAL_PATH/package/drivers/example_driver/src"
-    mkdir -p "$EXTERNAL_PATH/linux/example_kernel_mod/src"
-    
-    # Drop a dummy Makefile to make them buildable
-    echo -e "all:\n\t@echo 'Building...'\ninstall:\n\t@echo 'Installing...'" | tee \
-        "$EXTERNAL_PATH/package/apps/example_app/src/Makefile" \
-        "$EXTERNAL_PATH/package/drivers/example_driver/src/Makefile" > /dev/null
-}
 
 
 # ==========================================
@@ -250,7 +236,6 @@ main() {
         setup_base_directories
         generate_core_files
         generate_board_configs
-        scaffold_example_packages
         # Running sync immediately after init to generate glue for the scaffolded examples
         sync_packages
         sync_linux_extensions

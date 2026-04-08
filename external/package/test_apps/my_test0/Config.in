@@ -1,0 +1,4 @@
+config BR2_PACKAGE_MY_TEST0
+	bool "my_test0"
+	help
+	  Auto-generated package for my_test0.

@@ -1,2 +1,0 @@
-# Kernel extensions menu
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/linux/generated_ext_menu.in"

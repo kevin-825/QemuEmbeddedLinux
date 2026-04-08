@@ -1,0 +1,4 @@
+config BR2_PACKAGE_HELLLO
+	bool "helllo"
+	help
+	  Auto-generated package for helllo.

@@ -1,3 +1,7 @@
-menu "QemuEmbeddedLinux Project Options"
+
+menu "External Custom Packages"
 source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/package/generated_menu.in"
+endmenu
+menu "External loadable Kernel Modules"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/lkms/generated_ext_menu.in"   
 endmenu

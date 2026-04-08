@@ -1,0 +1,4 @@
+config BR2_PACKAGE_TEMP_TEST
+	bool "temp_test"
+	help
+	  Auto-generated package for temp_test.

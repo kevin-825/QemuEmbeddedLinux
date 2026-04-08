@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source your existing exception handling core
-#source ./script/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
+source ./scripts/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
 
 # --- Configuration & Defaults ---
 JSON_CFG="./env.json"
@@ -40,7 +40,11 @@ main() {
     export TARGET_BOARD BUILD_PROFILE
     #echo "main called with args: $*"
 
-    
+        rebuild_target_str=$($jSON_RESOLVER "$JSON_CFG" "build.rebuild_target_str")
+    echo "rebuild_target_str: $rebuild_target_str" >&2
+    someTest=$($jSON_RESOLVER "$JSON_CFG" "build.someTest")
+    echo "someTest: $someTest" >&2
+
     local qemu_cmd
     #qemu_cmd=$($jSON_RESOLVER "$JSON_CFG" "build.${BUILD_PROFILE}.qemu_run_cmd")
     #echo -e "qemu_cmd: $qemu_cmd" >&2

@@ -1,0 +1,2 @@
+# Kernel extensions menu
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/lkms/generated_ext_menu.in"

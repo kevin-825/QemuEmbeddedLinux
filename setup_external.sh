@@ -1,5 +1,5 @@
 #!/bin/bash
-
+source ./scripts/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
 # --- Global Variables ---
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 export PROJECT_ROOT="$SCRIPT_DIR"
@@ -10,6 +10,7 @@ RAW_PROJECT_NAME=""
 EXT_NAME=""
 EXTERNAL_PATH=""
 MODE=""
+kmod_dir_name="lkms"
 
 # --- Module: Argument Parsing ---
 show_help() {
@@ -23,8 +24,8 @@ show_help() {
     echo "  -h, --help   Show this help message and exit"
     echo ""
     echo "Example of adding a new kernel module:"
-    echo "  This is demo of adding a new kernel module named \"my_new_module\" into external/linux/example_kernel_mod folder:"
-    echo "    1. mkdir -p external/linux/example_kernel_mod/my_new_module/src"
+    echo "  This is demo of adding a new kernel module named \"my_new_module\" into external/$kmod_dir_name/example_kernel_mod folder:"
+    echo "    1. mkdir -p external/$kmod_dir_name/example_kernel_mod/my_new_module/src"
     echo "    2. run $0 sync  #this will generate the .mk and Config.in files for this new module and link it into the kernel extensions menu."
     echo "    3. Add your kernel module code into the src/ directory"
     echo "    4. build your project with Buildroot as usual. The new module will be built and included in the final image based on the generated glue files."
@@ -40,6 +41,7 @@ parse_args() {
     case "$1" in
         init) MODE="init" ;;
         sync) MODE="sync" ;;
+        clean) MODE="clean" ;;
         -h|--help) show_help; exit 0 ;;
         *)
             echo ">>> [ERROR] Unknown command: $1"
@@ -71,7 +73,7 @@ setup_base_directories() {
     mkdir -p "$EXTERNAL_PATH/board"
     mkdir -p "$EXTERNAL_PATH/package/apps"
     mkdir -p "$EXTERNAL_PATH/package/drivers"
-    mkdir -p "$EXTERNAL_PATH/linux"
+    mkdir -p "$EXTERNAL_PATH/$kmod_dir_name"
     mkdir -p "$EXTERNAL_PATH/patches"
 }
 
@@ -84,22 +86,25 @@ desc: Auto-generated External Tree for $RAW_PROJECT_NAME
 EOF
 
     cat <<EOF > "$EXTERNAL_PATH/external.mk"
-# Include standard packages
-include \$(sort \$(wildcard \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/package/*/*/*.mk))
+# Include standard packages (using find for infinite depth)
+include \$(sort \$(shell find \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/package -name "*.mk"))
 
-# Include linux kernel extensions
-include \$(sort \$(wildcard \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/linux/*/*.mk))
+# Include linux kernel extensions (using find for infinite depth)
+include \$(sort \$(shell find \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/$kmod_dir_name -name "*.mk"))
 EOF
 
     cat <<EOF > "$EXTERNAL_PATH/Config.in"
-menu "$RAW_PROJECT_NAME Project Options"
+menu "External Custom Packages"
 source "\$BR2_EXTERNAL_${EXT_NAME}_PATH/package/generated_menu.in"
+endmenu
+menu "External loadable Kernel Modules"
+source "\$BR2_EXTERNAL_${EXT_NAME}_PATH/$kmod_dir_name/generated_ext_menu.in"   
 endmenu
 EOF
 
-    cat <<EOF > "$EXTERNAL_PATH/linux/Config.ext.in"
+    cat <<EOF > "$EXTERNAL_PATH/$kmod_dir_name/Config.ext.in"
 # Kernel extensions menu
-source "\$BR2_EXTERNAL_${EXT_NAME}_PATH/linux/generated_ext_menu.in"
+source "\$BR2_EXTERNAL_${EXT_NAME}_PATH/$kmod_dir_name/generated_ext_menu.in"
 EOF
 }
 
@@ -129,8 +134,9 @@ sync_packages() {
     echo ">>> [SYNC] Scanning apps and drivers for missing glue files..."
     local gen_in="$EXTERNAL_PATH/package/generated_menu.in"
     echo "# Auto-generated menu list" > "$gen_in"
-
-    for cat in apps drivers; do
+    local catagories=$(ls -d "$EXTERNAL_PATH/package"/*/ 2>/dev/null | xargs -n 1 basename | sort | uniq)
+    echo ">>> [SYNC] Found categories: $catagories"
+    for cat in $catagories ; do
         echo ">>> [SYNC] Processing category: $cat"
         local cat_dir="$EXTERNAL_PATH/package/$cat"
         if [[ -d "$cat_dir" && "$(ls -A "$cat_dir")" ]]; then
@@ -184,7 +190,7 @@ EOF
 # @description: Scans for missing .mk and Config.in files for kernel extensions
 sync_linux_extensions() {
     echo ">>> [SYNC] Scanning linux extensions for missing glue files..."
-    local linux_dir="$EXTERNAL_PATH/linux"
+    local linux_dir="$EXTERNAL_PATH/$kmod_dir_name"
     local ext_menu="$linux_dir/generated_ext_menu.in"
     
     echo "# Auto-generated kernel extensions list" > "$ext_menu"
@@ -203,7 +209,8 @@ sync_linux_extensions() {
                 echo "  -> Generating kernel module $name.mk"
                 cat <<EOF > "$mod_dir/$name.mk"
 ${upper}_VERSION = local
-${upper}_SITE = \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/linux/$relative_path/src
+${upper}_KCONFIG_VAR = BR2_EXT_KERNEL_MODULES_${upper}
+${upper}_SITE = \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/$kmod_dir_name/$relative_path
 ${upper}_SITE_METHOD = local
 
 # Assumes kernel-module infrastructure. Requires Kbuild/Makefile in src/
@@ -216,7 +223,7 @@ EOF
             if [[ ! -f "$mod_dir/Config.in" ]]; then
                 echo "  -> Generating Config.in for kernel module $name"
                 cat <<EOF > "$mod_dir/Config.in"
-config BR2_LINUX_KERNEL_EXT_${upper}
+config BR2_EXT_KERNEL_MODULES_${upper}
 	bool "$name module"
 	help
 	  Auto-generated kernel module extension for $name.
@@ -258,9 +265,19 @@ EOF
             fi
 
             # Link into the dynamic kernel menu
-            echo "source \"\$BR2_EXTERNAL_${EXT_NAME}_PATH/linux/$relative_path/Config.in\"" >> "$ext_menu"
+            echo "source \"\$BR2_EXTERNAL_${EXT_NAME}_PATH/$kmod_dir_name/$relative_path/Config.in\"" >> "$ext_menu"
         done
     fi
+}
+clean_external_packages() {
+    echo ">>> [CLEAN] Removing generated package glue files..."
+    find "$EXTERNAL_PATH/package" -type f \( -name "*.mk" -o -name "Config.in" -o -name "generated_menu.in" -o -name "Makefile" \) -delete
+}
+
+clean_external_linux_extensions() {
+    echo ">>> [CLEAN] Removing generated kernel module glue files..."
+    find "$EXTERNAL_PATH/$kmod_dir_name" -type f \( -name "*.mk" -o -name "Config.in" -o -name "generated_menu.in" -o -name "Makefile" \) -delete
+    #find "$EXTERNAL_PATH/$kmod_dir_name" -type f -name "generated_ext_menu.in" -delete
 }
 
 # --- Main Execution ---
@@ -281,6 +298,14 @@ main() {
         sync_packages
         sync_linux_extensions
         echo ">>> [SUCCESS] Sync complete. Buildroot menus updated."
+    elif [[ "$MODE" == "clean" ]]; then
+        clean_external_packages
+        clean_external_linux_extensions
+        echo ">>> [SUCCESS] Clean complete. Generated glue files removed."
+    else
+        echo ">>> [ERROR] Invalid mode: $MODE"
+        show_help
+        exit 1
     fi
 }
 

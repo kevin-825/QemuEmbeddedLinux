@@ -1,0 +1,5 @@
+# Auto-generated kernel extensions list
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/lkms/example_mod/helloMod/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/lkms/example_mod/hiMod/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/lkms/example_mod/testMod/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/lkms/example_mod/KevinsMod/Config.in"

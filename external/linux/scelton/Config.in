@@ -1,4 +1,0 @@
-config BR2_LINUX_KERNEL_EXT_SCELTON
-	bool "scelton module"
-	help
-	  Auto-generated kernel module extension for scelton.

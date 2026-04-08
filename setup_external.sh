@@ -21,6 +21,14 @@ show_help() {
     echo ""
     echo "Options:"
     echo "  -h, --help   Show this help message and exit"
+    echo ""
+    echo "Example of adding a new kernel module:"
+    echo "  This is demo of adding a new kernel module named \"my_new_module\" into external/linux/example_kernel_mod folder:"
+    echo "    1. mkdir -p external/linux/example_kernel_mod/my_new_module/src"
+    echo "    2. run $0 sync  #this will generate the .mk and Config.in files for this new module and link it into the kernel extensions menu."
+    echo "    3. Add your kernel module code into the src/ directory"
+    echo "    4. build your project with Buildroot as usual. The new module will be built and included in the final image based on the generated glue files."
+    exit 0
 }
 
 parse_args() {
@@ -137,6 +145,7 @@ sync_packages() {
     echo "# Auto-generated menu list" > "$gen_in"
 
     for cat in apps drivers; do
+        echo ">>> [SYNC] Processing category: $cat"
         local cat_dir="$EXTERNAL_PATH/package/$cat"
         if [[ -d "$cat_dir" && "$(ls -A "$cat_dir")" ]]; then
             echo "menu \"${cat^}\"" >> "$gen_in"
@@ -195,7 +204,8 @@ sync_linux_extensions() {
     echo "# Auto-generated kernel extensions list" > "$ext_menu"
     
     if [[ -d "$linux_dir" ]]; then
-        find "$linux_dir" -mindepth 2 -maxdepth 2 -type d -name "src" | while read -r src_path; do
+        find "$linux_dir" -mindepth 2 -maxdepth 10 -type d -name "src" | while read -r src_path; do
+            echo ">>> [SYNC] Processing kernel extension at: $src_path"
             local mod_dir=$(dirname "$src_path")
             local name=$(basename "$mod_dir")
             local upper=$(echo "$name" | tr '[:lower:]' '[:upper:]' | tr '-' '_')

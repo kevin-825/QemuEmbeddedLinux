@@ -237,7 +237,7 @@ MODULE_OBJs := \$(MODULE_SRCs:.c=.o)
 \$(MODULE_NAME)-y := \$(MODULE_OBJs)
 
 # Build environment paths
-KDIR        ?= \$KBUILD_OUT_DIR
+KDIR        ?= \$(KBUILD_OUT_DIR)
 PWD         := \$(shell pwd)
 # ==============================================================================
 # Build Targets

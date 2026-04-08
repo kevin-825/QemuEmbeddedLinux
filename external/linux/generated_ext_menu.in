@@ -1,1 +1,3 @@
 # Auto-generated kernel extensions list
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/linux/driver/char_dev/my_char1/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/linux/example_mod/helloMod/Config.in"

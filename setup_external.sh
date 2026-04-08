@@ -190,18 +190,20 @@ sync_linux_extensions() {
     echo "# Auto-generated kernel extensions list" > "$ext_menu"
     
     if [[ -d "$linux_dir" ]]; then
+        echo ">>> [SYNC] Processing linux extensions in: $linux_dir"
         find "$linux_dir" -mindepth 2 -maxdepth 10 -type d -name "src" | while read -r src_path; do
             echo ">>> [SYNC] Processing kernel extension at: $src_path"
             local mod_dir=$(dirname "$src_path")
             local name=$(basename "$mod_dir")
             local upper=$(echo "$name" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
-            
+            local relative_path=$(realpath --relative-to="$linux_dir" "$mod_dir")
+            echo ">>> [SYNC] module name: $name (upper: $upper) relative_path: $relative_path"
             # 1. Generate .mk if missing
             if [[ ! -f "$mod_dir/$name.mk" ]]; then
                 echo "  -> Generating kernel module $name.mk"
                 cat <<EOF > "$mod_dir/$name.mk"
 ${upper}_VERSION = local
-${upper}_SITE = \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/linux/$name/src
+${upper}_SITE = \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/linux/$relative_path/src
 ${upper}_SITE_METHOD = local
 
 # Assumes kernel-module infrastructure. Requires Kbuild/Makefile in src/
@@ -220,9 +222,43 @@ config BR2_LINUX_KERNEL_EXT_${upper}
 	  Auto-generated kernel module extension for $name.
 EOF
             fi
-            
+            if [[ ! -f "$mod_dir/Makefile" ]]; then
+                echo "  -> Generating Makefile for kernel module $name"
+                cat <<EOF > "$mod_dir/Makefile"
+# ==============================================================================
+# Out-of-Tree Kernel Module Makefile
+# ==============================================================================
+
+# Module definition
+MODULE_NAME := $name
+obj-m += \$(MODULE_NAME).o
+MODULE_SRCs := \$(wildcard src/*.c)
+MODULE_OBJs := \$(MODULE_SRCs:.c=.o)
+\$(MODULE_NAME)-y := \$(MODULE_OBJs)
+
+# Build environment paths
+KDIR        ?= \$KBUILD_OUT_DIR
+PWD         := \$(shell pwd)
+# ==============================================================================
+# Build Targets
+# ==============================================================================
+.PHONY: all clean install \$(MODULE_NAME)
+
+all: \$(MODULE_NAME)
+
+\$(MODULE_NAME):
+	\$(MAKE) -C \$(KDIR) M=\$(PWD) modules
+
+clean:
+	\$(MAKE) -C \$(KDIR) M=\$(PWD) clean
+
+install:
+	\$(MAKE) -C \$(KDIR) M=\$(PWD) modules_install
+EOF
+            fi
+
             # Link into the dynamic kernel menu
-            echo "source \"\$BR2_EXTERNAL_${EXT_NAME}_PATH/linux/$name/Config.in\"" >> "$ext_menu"
+            echo "source \"\$BR2_EXTERNAL_${EXT_NAME}_PATH/linux/$relative_path/Config.in\"" >> "$ext_menu"
         done
     fi
 }

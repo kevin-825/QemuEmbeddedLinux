@@ -4,5 +4,4 @@ menu "External Loadable Kernel Modules"
 endmenu
 
 menu "External Custom Packages"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/example/my_exam_0/Config.in"
 endmenu

@@ -73,7 +73,7 @@ setup_external_linux_module() {
     local mod_dir="$EXTERNAL_PATH/$relative_path_ext_dir"
 
 
-    log_debug ">>> [Info] Setting up new external Linux module: $mod_name"
+    echo ">>> [Info] Setting up new external Linux module: $mod_name"
     log_debug ">>> [Info] Path to module: $path_to_mod_name"
     log_debug ">>> [Info] Module directory: $mod_dir"
     log_debug ">>> [Info] Module name: $mod_name"
@@ -124,7 +124,7 @@ MODULE_NAME = $mod_name
 # ------------------------------------------------------------------------------
 ifneq (\$(KERNELRELEASE),)
 
-$(info ">>> [Info] Running in Kbuild context. Building $mod_name as a kernel module.")
+\$(info ">>> [Info] Running in Kbuild context. Building $mod_name as a kernel module.")
 
 obj-m += \$(MODULE_NAME).o
 
@@ -138,8 +138,8 @@ MODULE_OBJs := \$(patsubst \$(src)/%.c,%.o,\$(MODULE_SRCs))
 # PATH 2: Manual GNU Make Context (Invoked directly by the user)
 # ------------------------------------------------------------------------------
 else
-$(info ">>> [Info] Running in manual make context.")
-$(info ">>> [Info] Exported variables: ARCH=$$ARCH, CROSS_COMPILE=$$CROSS_COMPILE, PRE_BUILT_KERNEL_OUT_DIR=$$PRE_BUILT_KERNEL_OUT_DIR")
+\$(info ">>> [Info] Running in manual make context.")
+\$(info ">>> [Info] Exported variables: ARCH=\$(ARCH), CROSS_COMPILE=\$(CROSS_COMPILE), PRE_BUILT_KERNEL_OUT_DIR=\$(PRE_BUILT_KERNEL_OUT_DIR)")
 
 # --- Strict Environment Checks ---
 ifndef ARCH

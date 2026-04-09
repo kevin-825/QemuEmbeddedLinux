@@ -1,6 +1,8 @@
 # Auto-generated Config.in for QEMUEMBEDDEDLINUX
 
 menu "External Loadable Kernel Modules"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/example_mod/foo/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/example_mod/helloMod/Config.in"
 endmenu
 
 menu "External Custom Packages"

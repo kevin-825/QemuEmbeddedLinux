@@ -193,6 +193,7 @@ usage() {
     echo "Options:"
     echo "  -b,  --target-board <board>     Set the target board (Required)"
     echo "  -p,  --build-profile <profile>  Set the build profile (Required)"
+    echo "  -t,  --build-target <target>    Add a specific Buildroot target to build (for example, 'linux-rebuild'). Can be used multiple times to specify multiple targets."
     echo "  -def,--defconfig <config>       Override the default BR2_DEFCONFIG"
     echo "  -d,  --dry-run                  Enable dry run (print commands without executing)"
     echo "  -r,  --run-qemu                 Run in QEMU after building."

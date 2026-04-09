@@ -1,4 +1,0 @@
-config BR2_PACKAGE_MY_CUSTOM_DAEMON
-	bool "my_custom_daemon"
-	help
-	  Auto-generated package for my_custom_daemon.

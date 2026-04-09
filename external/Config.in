@@ -1,7 +1,8 @@
+# Auto-generated Config.in for QEMUEMBEDDEDLINUX
+
+menu "External Loadable Kernel Modules"
+endmenu
 
 menu "External Custom Packages"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/package/generated_menu.in"
-endmenu
-menu "External loadable Kernel Modules"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/lkms/generated_ext_menu.in"   
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/example/my_exam_0/Config.in"
 endmenu

@@ -39,6 +39,13 @@ setup_environment() {
         echo "Exported: $line"
     done < <($jSON_RESOLVER "$JSON_CFG" "build.env_exports[]")
 
+    while IFS= read -r line; do
+        # Evaluate variables inside the string (e.g., ${PROJECT_ROOT})
+        echo "line: $line"
+        eval "export $line"
+        echo "Exported: $line"
+    done < <($jSON_RESOLVER "$JSON_CFG" "build.profiles.${BUILD_PROFILE}.profile_env_exports[]")
+
     echo -e "Selected Target: $TARGET_BOARD\n \
         Build Profile: $BUILD_PROFILE\n \
         TARGET_BR2_DEFCONFIG: $TARGET_BR2_DEFCONFIG \n \

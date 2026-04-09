@@ -1,4 +1,0 @@
-config BR2_EXT_KERNEL_MODULES_TESTMOD
-	bool "testMod module"
-	help
-	  Auto-generated kernel module extension for testMod.

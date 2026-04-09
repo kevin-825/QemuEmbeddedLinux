@@ -9,6 +9,7 @@ jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
 
 TARGET_BOARD="qemu_riscv64_virt_board"
 BUILD_PROFILE="rootfsOnlyBuild"
+BUILD_TARGETS=() # Initialize as an array to hold multiple build targets if needed
 BUILD_KERNEL=false
 DRY_RUN=false
 RUN_QEMU=false
@@ -21,6 +22,7 @@ init(){
 }
 setup_environment() {
     echo "--- Setting up Shell Environment ---"
+    export BUILD_PROFILE TARGET_BOARD PROJECT_ROOT BUILD_TARGETS_BR2="${BUILD_TARGETS[@]}"
     echo "Project Root: $PROJECT_ROOT"
     # 1. Export variables from the global environment section
     # Note: Using 'env' as a temp variable to avoid conflicts
@@ -28,7 +30,7 @@ setup_environment() {
         TARGET_BR2_DEFCONFIG=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.BR_DEFCONFIG")
     fi
 
-    export PROJECT_ROOT TARGET_BOARD BUILD_PROFILE TARGET_BR2_DEFCONFIG
+    export TARGET_BR2_DEFCONFIG
 
     # 2. Export the env_exports array from the build scope
     # We read the array and loop through it to export each string
@@ -152,6 +154,14 @@ parse_args() {
             -b|--target-board)  TARGET_BOARD="$2"; shift 2 ;;
             -p|--build-profile) BUILD_PROFILE="$2"; shift 2 ;; 
             -def|--defconfig) TARGET_BR2_DEFCONFIG="$2"; shift 2 ;;
+            -t|--build-target)
+                if [[ -n "$2" && ! "$2" == -* ]]; then
+                    BUILD_TARGETS+=("$2")
+                    shift 2
+                else
+                    shift 1
+                fi
+                ;;
             -d|--dry-run) DRY_RUN=true; shift ;;
             -r|--run-qemu) 
                 RUN_QEMU=true

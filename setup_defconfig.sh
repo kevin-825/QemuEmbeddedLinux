@@ -37,7 +37,7 @@ init_globals() {
 
     BUILDROOT_DIR=$($JSON_RESOLVER "$JSON_CFG" "environment.BUILDROOT_DIR")
     EXTERNAL_DIR=$($JSON_RESOLVER "$JSON_CFG" "environment.EXTERNAL_DIR")
-    OUTPUT_DIR=$($JSON_RESOLVER "$JSON_CFG" "environment.OUTPUT_BASE_DIR")"/config_manager"
+    OUTPUT_DIR=$($JSON_RESOLVER "$JSON_CFG" "environment.OUTPUT_BASE_DIR")"/config_manager/${LOAD_TARGET}"
     
     DOCKER_WRAPPER=$("$JSON_RESOLVER" "$JSON_CFG" "environment.DOCKER_WRAPPER")
     echo "DOCKER_WRAPPER: $DOCKER_WRAPPER"
@@ -122,6 +122,7 @@ parse_args() {
             -l|-ld|-load|--load)
                 DO_LOAD=true
                 LOAD_TARGET="$2"
+                LOAD_TARGET=${LOAD_TARGET#external/configs/}  # Remove path if provided
                 shift 2
                 ;;
             -m|-e|-edit|--menuconfig)

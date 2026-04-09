@@ -94,7 +94,7 @@ setup_external_linux_module() {
 ${upper}_VERSION = 1.0
 ${upper}_SITE = \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/$relative_path_ext_dir
 ${upper}_SITE_METHOD = local
-${upper}_MODULE_SUBDIR = src
+${upper}_MODULE_SUBDIRS = src
 
 # Optional: Add custom compiler flags here
 ${upper}_MODULE_MAKE_OPTS = \

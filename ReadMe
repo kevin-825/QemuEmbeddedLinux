@@ -36,3 +36,22 @@ to build using builtroot:
 
 ./build.sh -b qemu_riscv64_virt_board -p rootfsOnlyBuild -r -s -S
 ./build.sh -b qemu_riscv64_virt_board -p rootfsOnlyBuild -ro -s -S
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# to remove a file from .git :
+git filter-repo --path <PATH_TO_DELETE> --invert-paths --force
+git remote add origin git@github.com:kevin-825/QemuEmbeddedLinux.git
+git push origin --force --all

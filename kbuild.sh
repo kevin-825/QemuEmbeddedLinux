@@ -58,7 +58,7 @@ get_global_vars() {
         [[ "$DOCKER_WRAPPER" == "null" ]] && DOCKER_WRAPPER=""
 
         local available_boards
-        available_boards=$("$JSON_RESOLVER" "$JSON_CFG" "targets | keys")
+        available_boards=$("$JSON_RESOLVER" "$JSON_CFG" "boards | keys")
         
         if [[ -n "$available_boards" && -n "$TARGET_BOARD" ]]; then
             if echo "$available_boards" | grep -q "$TARGET_BOARD"; then

@@ -28,9 +28,9 @@ find /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/customBuild/build/ -name ".st
 to build using builtroot:
 
 ./build.sh -b qemu_riscv64_virt_board -p rootfsOnlyBuild
-./build.sh -b qemu_riscv64_virt_board -p customBuild
-
 ./build.sh -b qemu_aarch64_virt_board -p rootfsOnlyBuild
+
+./build.sh -b qemu_riscv64_virt_board -p customBuild
 ./build.sh -b qemu_aarch64_virt_board -p customBuild
 
 

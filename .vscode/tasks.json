@@ -1,0 +1,243 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "targetBoard",
+      "type": "pickString",
+      "description": "Select the Target Board (-b)",
+      "options": [
+        "qemu_SiFive_HiFive_Unleashed_board",
+        "qemu_aarch64_virt_board",
+        "qemu_raspi4b_board",
+        "qemu_riscv64_virt_board"
+      ],
+      "default": "qemu_SiFive_HiFive_Unleashed_board"
+    },
+    {
+      "id": "buildProfile",
+      "type": "pickString",
+      "description": "Select the Build Profile (-p)",
+      "options": [
+        "customBuild",
+        "rootfsOnlyBuild"
+      ],
+      "default": "customBuild"
+    },
+    {
+      "id": "buildTargets",
+      "type": "promptString",
+      "description": "Specific targets to build (-t). Default is 'all'.",
+      "default": "all"
+    },
+    {
+      "id": "qemuAction",
+      "type": "pickString",
+      "description": "QEMU Execution Mode",
+      "options": [
+        {
+          "label": "🛑 Build Only (No QEMU)",
+          "value": ""
+        },
+        {
+          "label": "▶️ Build and Run QEMU",
+          "value": "-r"
+        },
+        {
+          "label": "⏩ Skip Build, ONLY Run QEMU",
+          "value": "-ro"
+        }
+      ],
+      "default": ""
+    },
+    {
+      "id": "loadConfigName",
+      "type": "pickString",
+      "description": "Select the defconfig to LOAD (e.g., base_qemu_riscv_defconfig)",
+      "options": [
+        "customBuild_qemu_aarch64_virt_defconfig",
+        "customBuild_qemu_riscv64_virt_defconfig",
+        "rootfsOnlyBuild_qemu_aarch64_virt_defconfig",
+        "rootfsOnlyBuild_qemu_riscv64_virt_defconfig"
+      ],
+      "default": ""
+    },
+    {
+      "id": "saveConfigName",
+      "type": "promptString",
+      "description": "Enter the NEW defconfig name to SAVE AS (e.g., new_feature_defconfig)",
+      "default": ""
+    }
+  ],
+  "tasks": [
+    {
+      "label": "🛠️ Build: Interactive Menu",
+      "detail": "Choose board, profile, targets, and QEMU run mode dynamically.",
+      "type": "shell",
+      "command": "./build.sh -b ${input:targetBoard} -p ${input:buildProfile} -t ${input:buildTargets} ${input:qemuAction}",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Quick Build: RISC-V Custom (Default)",
+      "detail": "Runs: ./build.sh -b qemu_riscv64_virt_board -p customBuild -t all",
+      "type": "shell",
+      "command": "./build.sh",
+      "args": [
+        "-b",
+        "qemu_riscv64_virt_board",
+        "-p",
+        "customBuild",
+        "-t",
+        "all"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🐧 Quick Build: Recompile Linux Kernel (RISC-V)",
+      "detail": "Runs: ./build.sh -b qemu_riscv64_virt_board -p customBuild -t linux-rebuild all",
+      "type": "shell",
+      "command": "./build.sh",
+      "args": [
+        "-b",
+        "qemu_riscv64_virt_board",
+        "-p",
+        "customBuild",
+        "-t",
+        "linux-rebuild",
+        "all"
+      ],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "▶️ Quick Run: QEMU RISC-V (Skip Build)",
+      "detail": "Runs: ./build.sh -b qemu_riscv64_virt_board -p customBuild -ro",
+      "type": "shell",
+      "command": "./build.sh",
+      "args": [
+        "-b",
+        "qemu_riscv64_virt_board",
+        "-p",
+        "customBuild",
+        "-ro"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Quick Build & Run: QEMU AArch64 Virt",
+      "detail": "Runs: ./build.sh -b qemu_aarch64_virt_board -p customBuild -t all -r",
+      "type": "shell",
+      "command": "./build.sh",
+      "args": [
+        "-b",
+        "qemu_aarch64_virt_board",
+        "-p",
+        "customBuild",
+        "-t",
+        "all",
+        "-r"
+      ],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "▶️ Quick Run: QEMU AArch64 Virt (Skip Build)",
+      "detail": "Runs: ./build.sh -b qemu_aarch64_virt_board -p customBuild -ro",
+      "type": "shell",
+      "command": "./build.sh",
+      "args": [
+        "-b",
+        "qemu_aarch64_virt_board",
+        "-p",
+        "customBuild",
+        "-ro"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🎛️ Config : Load ➡️ Edit ➡️ Save, Save as it is ",
+      "detail": "Loads a config, opens menuconfig, and overwrites the SAME file.",
+      "type": "shell",
+      "command": "./scripts/setup_defconfig.sh -b ${input:targetBoard} -p ${input:buildProfile} -l ${input:loadConfigName} -m -s ${input:loadConfigName}",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🎛️ Config: Load ➡️ Edit ➡️ Save to ➡️ NewName_defconfig",
+      "detail": "Loads a config, opens menuconfig, and saves to a NEW file.",
+      "type": "shell",
+      "command": "./scripts/setup_defconfig.sh -b ${input:targetBoard} -p ${input:buildProfile} -l ${input:loadConfigName} -m -s ${input:saveConfigName}",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

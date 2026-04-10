@@ -251,9 +251,9 @@ main() {
     run_qemu_logic "$BUILD_PROFILE"
     
     echo ">>> [SUCCESS] Pipeline for $TARGET_BOARD using $BUILD_PROFILE finished."
-    OUT_DIR=$($jSON_RESOLVER "$JSON_CFG" "environment.OUTPUT_BASE_DIR")"/$TARGET_BOARD/$BUILD_PROFILE"
-    mkdir -p "$OUT_DIR/images/extracted_rootfs"
-    tar -xf $OUT_DIR/images/rootfs.tar -C $OUT_DIR/images/extracted_rootfs
+    #OUT_DIR=$($jSON_RESOLVER "$JSON_CFG" "environment.OUTPUT_BASE_DIR")"/$TARGET_BOARD/$BUILD_PROFILE"
+    #mkdir -p "$OUT_DIR/images/extracted_rootfs"
+    #tar -xf $OUT_DIR/images/rootfs.tar -C $OUT_DIR/images/extracted_rootfs
 }
 
 main "$@"

@@ -208,10 +208,10 @@
       "problemMatcher": []
     },
     {
-      "label": "🎛️ Config : Load ➡️ Edit ➡️ Save, Save as it is ",
-      "detail": "Loads a config, opens menuconfig, and overwrites the SAME file.",
+      "label": "🎛️ Config: Load ➡️ Edit ➡️ Save to ➡️ NewName_defconfig",
+      "detail": "Loads a config, opens menuconfig, and saves to a NEW file.",
       "type": "shell",
-      "command": "./scripts/setup_defconfig.sh -b ${input:targetBoard} -p ${input:buildProfile} -l ${input:loadConfigName} -m -s ${input:loadConfigName}",
+      "command": "./setup_defconfig.sh -b ${input:targetBoard} -p ${input:buildProfile} -l ${input:loadConfigName} -m -s ${input:saveConfigName}",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -224,10 +224,26 @@
       "problemMatcher": []
     },
     {
-      "label": "🎛️ Config: Load ➡️ Edit ➡️ Save to ➡️ NewName_defconfig",
-      "detail": "Loads a config, opens menuconfig, and saves to a NEW file.",
+      "label": "🎛️ quick Config: qemu_aarch64_virt_board Using customBuild_qemu_aarch64_virt_defconfig  ",
+      "detail": "Loads a config, opens menuconfig, and overwrites the SAME file.",
       "type": "shell",
-      "command": "./scripts/setup_defconfig.sh -b ${input:targetBoard} -p ${input:buildProfile} -l ${input:loadConfigName} -m -s ${input:saveConfigName}",
+      "command": "./setup_defconfig.sh -b qemu_aarch64_virt_board -p customBuild -l customBuild_qemu_aarch64_virt_defconfig -m -s",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "focus": true,
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🎛️ quick Config: qemu_riscv64_virt_board Using customBuild_qemu_riscv64_virt_defconfig  ",
+      "detail": "Loads a config, opens menuconfig, and overwrites the SAME file.",
+      "type": "shell",
+      "command": "./setup_defconfig.sh -b qemu_riscv64_virt_board -p customBuild -l customBuild_qemu_riscv64_virt_defconfig -m -s",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -239,5 +255,6 @@
       },
       "problemMatcher": []
     }
+    
   ]
 }

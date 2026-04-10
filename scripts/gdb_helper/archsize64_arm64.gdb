@@ -1,7 +1,7 @@
 # ==============================================================================
 # ARM64 SPECIFIC HARDWARE RULES & MACROS (PURE GDB VERSION)
 # ==============================================================================
-set architecture aarch64
+#set architecture aarch64
 
 # --- 2. Quick Info Registers ---
 define infr
@@ -68,7 +68,7 @@ define decode_esr
 end
 
 # --- 5. Architecture Specific Stop Hook ---
-define hook-stop
+define archsize64_arm64-stop-hook
     echo \n=======================================================\n
     echo [ARM64] CPU Paused. Context:\n
     display /i $pc

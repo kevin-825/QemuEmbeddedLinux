@@ -200,3 +200,12 @@ class DecodeESR(gdb.Command):
 
 DecodeESR()
 end
+
+
+define archsize32_arm32-stop-hook
+    echo \n=======================================================\n
+    echo [ARM32] CPU Paused. Context:\n
+    display /i $pc
+    
+    echo =======================================================\n
+end

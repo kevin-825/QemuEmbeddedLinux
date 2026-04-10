@@ -1,60 +1,76 @@
-# ==============================================================================
-# BUG PLAYBOOK: [Insert Bug Name/ID Here]
-# ==============================================================================
+source ./scripts/auto_gdbinit
 
-# 1. Load Static Toolkits (The paths assume this file is in your project root)
-shell pwd
-add-auto-load-safe-path /mnt/wsl/ramdisk5/linux/scripts/gdb/vmlinux-gdb.py
+eval "file %s", $DEBUG_TARGET_VMLINUX
+printf "\n>>> DEBUG_TARGET_VMLINUX:%s\n\n",$DEBUG_TARGET_VMLINUX
+#eval "add-symbol-file %s", $DEBUG_TARGET_VMLINUX
+
 source ./scripts/gdb_helper/global_setup.gdb
 source ./scripts/gdb_helper/linux_macros.gdb
-source ./scripts/gdb_helper/arch_riscv64.gdb
-#source ./scripts/gdb_helper/arch_arm64.gdb
+#printf "\n>>> Target Architecture: %s \n", $build_ARCH
 
-# 2. Connect to the Target
-
-
-define rl
-    # Reloads the root playbook dynamically
-    source ./gdbinit
-    echo [\n] Dynamic Playbook Reloaded!\n
+if $ARCH_IN_NUMBER == 0
+    #this is riscv
+    echo \n sourcing vmlinux-gdb.py for riscv \n
+    eval "source %s/scripts/gdb/vmlinux-gdb.py", $BR2_KERNEL_SRC_DIR
 end
 
+# 1.Low-Level Debug Settings
+set remotetimeout 60
+#set step-mode on
 
-# --- Binary Loading ---
-set $out_dir = "/mnt/wsl/ramdisk5/out"
-eval "set $riscv64_virt = \"%s/qemu_riscv64_virt_board\"", $out_dir
-eval "set $aarch64_virt = \"%s/qemu_aarch64_virt_board\"", $out_dir
+# 2.Kernel-Level Debug Settings
+set schedule-multiple off
+#set print thread-events off
+#set max-value-size unlimited
 
-#eval "set $riscv64_virt_vmlinux = \"%s/kernel/my_linux_DEBUG_defconfig/vmlinux\"", $riscv64_virt
-eval "set $rv_prog0 = \"%s/kernel/my_linux_DEBUG_defconfig/vmlinux\"", $riscv64_virt
 
-#eval "set $aarch64_virt_vmlinux = \"%s/kernel/my_linux_arm64_virt_DEBUG_defconfig/vmlinux\"", $aarch64_virt
-eval "set $arm_prog0 = \"%s/kernel/my_linux_arm64_virt_DEBUG_defconfig/vmlinux\"", $aarch64_virt
+# 3.User-Level Debug Settings
+#handle SIG32 nostop noprint pass
+#set follow-fork-mode child
+#set follow-fork-mode parent
+# Custom shared lib path (if needed)
+#set solib-search-path <path_to_libs>
 
-define cn
-    echo [\n] Connecting to QEMU on localhost:1234...\n
+
+#show GDB config vars
+show sysroot
+show architecture
+show pagination
+
+################################
+# Breakpoint & and debug setup
+################################
+
+
+define cnnt
+    echo \n ====== Connecting to QEMU on localhost:1234 ======\n
     target remote localhost:1234
-    
-    # Reload symbols just in case the binary was updated
-    # add-symbol-file vmlinux
-    
-    
     info connections
+    echo \n =============== Connected ========================\n
 end
 
+define cnnt-ext
+    echo \n ====== Connecting to QEMU on localhost:1234 ======\n
+    target extended-remote localhost:1234
+    info connections
+    echo \n =============== Connected ========================\n
+    #set remote exec-file /usr/bin/my_custom_app
+end
 
+define bkpt
+    echo \n-------------------------------\n
+    hbreak start_kernel
+    hbreak panic
+    echo \n-------------------------------\n
+end
 
-eval "add-symbol-file %s", $rv_prog0
-cn
+printf "archsize%s_%s-stop-hook  added to hook-stop", $build_ARCH_SIZE, $build_ARCH
 
+define hook-stop
+    eval "archsize%s_%s-stop-hook", $build_ARCH_SIZE, $build_ARCH
+end
 
-
-# 3. Dynamic State & Breakpoints
-
-hbreak start_kernel
-hbreak panic
-
-
-# 4. Action
-# ---------------------------------------------------------
-#continue
+#Do the connection and do setup breakpoint here
+#cnnt
+cnnt-ext
+bkpt

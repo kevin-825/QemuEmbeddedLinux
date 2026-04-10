@@ -2,11 +2,6 @@
 # ==============================================================================
 # RISC-V 64 SPECIFIC HARDWARE RULES & MACROS
 # ==============================================================================
-set architecture riscv:rv64
-
-# --- Hardware Breakpoints ---
-hbreak start_kernel
-hbreak panic
 
 # --- Auto-Display General Purpose Registers ---
 define set_disp_riscv_regs
@@ -122,10 +117,10 @@ define info_machine_reg
 end
 
 # --- Architecture Specific Stop Hook ---
-define hook-stop
+define archsize64_riscv-stop-hook
     echo \n=======================================================\n
     echo [RISC-V 64] CPU Paused. Context:\n
-    display /i $pc
+    #display /i $pc
     
     # Dump S-Mode registers by default since we are debugging Linux
     info_supervisor_reg

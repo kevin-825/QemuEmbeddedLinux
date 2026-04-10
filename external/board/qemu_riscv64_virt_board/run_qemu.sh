@@ -1,7 +1,8 @@
 run_qemu() {
-    local kernel_path="$1"
-    local sdcard_path="$2"
-    shift 2 # Strip the first two args so "$@" only contains the extra flags
+    local output_dir="$1"
+    local kernel_path="$output_dir"/images/u-boot.bin
+    local sdcard_path="$output_dir"/images/sdcard.img
+    shift 1 # Strip the first arg so "$@" only contains the extra flags
 
     echo ">>> [INFO] Initializing QEMU Environment..."
 
@@ -15,12 +16,11 @@ run_qemu() {
         -M virt
         -m 1024M
         -nographic
-        -kernel "$kernel_path"
         -drive file="$sdcard_path",format=raw,id=hd0,if=none
         -device virtio-blk-device,drive=hd0
         -netdev user,id=net0
         -device virtio-net-device,netdev=net0
-        -append "root=/dev/vda2 rw rootwait initcall_debug console=ttyS0 earlycon=sbi"
+        -kernel "$kernel_path" -append "root=/dev/vda2 rw rootwait initcall_debug console=ttyS0 earlycon=sbi"
         "$@" # <--- Inject all passed-through flags here natively!
     )
 
@@ -36,8 +36,8 @@ run_qemu() {
 
 # Execution block
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    if [[ $# -lt 2 ]]; then 
-        echo "Usage: $0 <kernel_path> <sdcard_path> [extra_qemu_args...]"
+    if [[ $# -lt 1 ]]; then 
+        echo "Usage: $0 <output_dir> [extra_qemu_args...]"
         exit 1
     fi
     # Pass all arguments to the function

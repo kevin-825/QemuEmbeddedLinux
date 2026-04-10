@@ -57,3 +57,21 @@ genimage \
 
 echo ">>> [SUCCESS] Bootable SD Card image generated at:"
 echo ">>> ${BINARIES_DIR}/sdcard.img"
+
+create_flash_bin() {
+
+    echo ">>> [POST-IMAGE] Stitching TF-A and FIP into QEMU flash.bin..."
+
+    # 1. Create a blank 64MB flash chip
+    dd if=/dev/zero of="${BINARIES_DIR}/flash.bin" bs=1M count=64 status=none
+
+    # 2. Inject BL1 at the very beginning (0x0)
+    dd if="${BINARIES_DIR}/bl1.bin" of="${BINARIES_DIR}/flash.bin" conv=notrunc status=none
+
+    # 3. Inject the FIP (BL2 + BL31 + U-Boot) at offset 0x40000 (block 256 of 1K)
+    dd if="${BINARIES_DIR}/fip.bin" of="${BINARIES_DIR}/flash.bin" seek=256 bs=1K conv=notrunc status=none
+
+    echo ">>> [POST-IMAGE] flash.bin created successfully!"
+}
+
+create_flash_bin

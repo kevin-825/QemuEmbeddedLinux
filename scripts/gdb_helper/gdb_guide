@@ -8,3 +8,11 @@ tui reg general,,Show standard integer registers.
 tui reg float,,Show floating-point registers.
 refresh,Ctrl+L,Fixes the screen if the layout gets garbled.
 tui disable,Ctrl+X A,Toggle back to classic CLI mode.
+
+
+
+
+
+
+
+

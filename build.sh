@@ -155,12 +155,12 @@ parse_args() {
             -p|--build-profile) BUILD_PROFILE="$2"; shift 2 ;; 
             -def|--defconfig) TARGET_BR2_DEFCONFIG="$2"; shift 2 ;;
             -t|--build-target)
-                if [[ -n "$2" && ! "$2" == -* ]]; then
-                    BUILD_TARGETS+=("$2")
-                    shift 2
-                else
-                    shift 1
-                fi
+                shift # Shift past the '-t' flag itself
+                # Consume arguments until we run out, or hit the next flag (starts with '-')
+                while [[ $# -gt 0 && ! "$1" == -* ]]; do
+                    BUILD_TARGETS+=("$1")
+                    shift
+                done
                 ;;
             -d|--dry-run) DRY_RUN=true; shift ;;
             -r|--run-qemu) 
@@ -193,7 +193,7 @@ usage() {
     echo "Options:"
     echo "  -b,  --target-board <board>     Set the target board (Required)"
     echo "  -p,  --build-profile <profile>  Set the build profile (Required)"
-    echo "  -t,  --build-target <target>    Add a specific Buildroot target to build (for example, 'linux-rebuild'). Can be used multiple times to specify multiple targets"
+    echo "  -t,  --build-target <target>    Add a specific Buildroot target to build (for example, '-t linux-rebuild uboot-rebuild all')"
     echo "  -def,--defconfig <config>       Override the default BR2_DEFCONFIG"
     echo "  -d,  --dry-run                  Enable dry run (print commands without executing)"
     echo "  -r,  --run-qemu                 Run in QEMU after building."
@@ -205,14 +205,29 @@ usage() {
     echo "  -h,  --help                     Show this help message and exit."
     echo ""
     echo "Available boards (-b):"
+    local boards=()
+    for line in $(jq -r '.boards | keys | .[]' "$JSON_CFG"); do
+        boards+=("$line")
+    done
     # Query keys under the 'boards' object
     jq -r '.boards | keys | .[]' "$JSON_CFG" | sed 's/^/   - /'
     
     echo ""
     echo "Available Build Profiles (-p):"
     # Query keys under the 'build' object, excluding 'base_options'
+    local profiles=()
+    for line in $(jq -r '.build.profiles | keys | .[] | select(. != "base_options")' "$JSON_CFG"); do
+        profiles+=("$line")
+    done
     jq -r '.build.profiles | keys | .[] | select(. != "base_options")' "$JSON_CFG" | sed 's/^/   - /'
     echo ""
+    echo "Example Usage:"
+    for board in "${boards[@]}"; do
+        for profile in "${profiles[@]}"; do
+            echo "  ./$(basename "$0") -b $board -p $profile -t all"
+        done
+        echo ""
+    done
     
     # Exit cleanly if help was requested, otherwise exit with error status
     if [[ "${1:-}" == "help" ]]; then

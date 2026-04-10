@@ -21,6 +21,9 @@ to configure buildroot:
 
 
 
+find /mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/customBuild/build/ -name ".stamp_images_installed" -delete
+
+
 
 to build using builtroot:
 

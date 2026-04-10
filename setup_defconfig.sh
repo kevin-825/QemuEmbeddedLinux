@@ -126,7 +126,7 @@ show_help() {
     echo "Example Usage:"
     for board in "${boards[@]}"; do
         for profile in "${profiles[@]}"; do
-            echo "  $(basename "$0") -b $board -p $profile -c -m -s -l my_defconfig"
+            echo "  ./$(basename "$0") -b $board -p $profile -c -m -s -l my_defconfig"
         done
         echo ""
     done

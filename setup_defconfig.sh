@@ -98,10 +98,39 @@ defconfig_save() {
 show_help() {
     echo "Usage: $(basename "$0") [options]"
     echo "Options can be chained (e.g., -l my_defconfig -m -s)"
+    echo "  -b | --board <name>                  Specify target board (e.g., rpi4)"
+    echo "  -p | --profile <name>                Specify build profile (default: rootfsOnlyBuild)"
     echo "  -c | --clean                          Wipe output directory"
-    echo "  -l | -load | --load <name>            Load a defconfig"
+    echo "  -l | -ld | -load | --load <name>            Load a defconfig"
     echo "  -m | -edit | --menuconfig             Open menuconfig"
     echo "  -s | -save | --save [name]            Save config (name optional)"
+    echo "  -h | --help                           Show this help message"
+    echo ""
+    echo "Available boards (-b):"
+    local boards=()
+    for line in $(jq -r '.boards | keys | .[]' "$JSON_CFG"); do
+        boards+=("$line")
+    done
+    # Query keys under the 'boards' object
+    jq -r '.boards | keys | .[]' "$JSON_CFG" | sed 's/^/   - /'
+    
+    echo ""
+    echo "Available Build Profiles (-p):"
+    # Query keys under the 'build' object, excluding 'base_options'
+    local profiles=()
+    for line in $(jq -r '.build.profiles | keys | .[] | select(. != "base_options")' "$JSON_CFG"); do
+        profiles+=("$line")
+    done
+    jq -r '.build.profiles | keys | .[] | select(. != "base_options")' "$JSON_CFG" | sed 's/^/   - /'
+    echo ""
+    echo "Example Usage:"
+    for board in "${boards[@]}"; do
+        for profile in "${profiles[@]}"; do
+            echo "  $(basename "$0") -b $board -p $profile -c -m -s -l my_defconfig"
+        done
+        echo ""
+    done
+
     exit 0
 }
 

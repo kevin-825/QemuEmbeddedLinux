@@ -50,7 +50,7 @@ main() {
     #echo -e "qemu_cmd: $qemu_cmd" >&2
 
     #local rootfsOnly_BR2_OPT
-    #rootfsOnly_BR2_OPT=$($jSON_RESOLVER "$JSON_CFG" "${targets.qemu_riscv64_virt_board.rootfsOnly_BR2_OPT.join('    ')}")
+    #rootfsOnly_BR2_OPT=$($jSON_RESOLVER "$JSON_CFG" "${boards.qemu_riscv64_virt_board.rootfsOnly_BR2_OPT.join('    ')}")
     #echo -e "rootfsOnly_BR2_OPT: $rootfsOnly_BR2_OPT" >&2
 
 

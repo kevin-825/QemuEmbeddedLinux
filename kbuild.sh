@@ -63,10 +63,10 @@ get_global_vars() {
         if [[ -n "$available_boards" && -n "$TARGET_BOARD" ]]; then
             if echo "$available_boards" | grep -q "$TARGET_BOARD"; then
                 # Only overwrite ARCH/CROSS_COMPILE if not provided by CLI
-                [[ -z "$ARCH" ]] && ARCH=$("$JSON_RESOLVER" "$JSON_CFG" "targets.${TARGET_BOARD}.ARCH")
-                [[ -z "$CROSS_COMPILE" ]] && CROSS_COMPILE=$("$JSON_RESOLVER" "$JSON_CFG" "targets.${TARGET_BOARD}.HOST_TOOLCHAIN_PREFIX")-
+                [[ -z "$ARCH" ]] && ARCH=$("$JSON_RESOLVER" "$JSON_CFG" "boards.${TARGET_BOARD}.ARCH")
+                [[ -z "$CROSS_COMPILE" ]] && CROSS_COMPILE=$("$JSON_RESOLVER" "$JSON_CFG" "boards.${TARGET_BOARD}.HOST_TOOLCHAIN_PREFIX")-
                 
-                DEFAULT_KERNEL_DEFCONFIG=$("$JSON_RESOLVER" "$JSON_CFG" "targets.${TARGET_BOARD}.KERNEL_DEFCONFIG")
+                DEFAULT_KERNEL_DEFCONFIG=$("$JSON_RESOLVER" "$JSON_CFG" "boards.${TARGET_BOARD}.KERNEL_DEFCONFIG")
                 DEFAULT_KERNEL_DEFCONFIG_PATH="${EXTERNAL_DIR}/board/${TARGET_BOARD}/kernel_configs"
                 # Auto-fetch defconfig if not explicitly overridden by CLI
                 if [[ -z "$USER_KERNEL_DEFCONFIG" ]]; then

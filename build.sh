@@ -27,7 +27,7 @@ setup_environment() {
     # 1. Export variables from the global environment section
     # Note: Using 'env' as a temp variable to avoid conflicts
     if [[ -z "$TARGET_BR2_DEFCONFIG" ]]; then
-        TARGET_BR2_DEFCONFIG=$($jSON_RESOLVER "$JSON_CFG" "targets.${TARGET_BOARD}.BR_DEFCONFIG")
+        TARGET_BR2_DEFCONFIG=$($jSON_RESOLVER "$JSON_CFG" "boards.${TARGET_BOARD}.BR_DEFCONFIG")
     fi
 
     export TARGET_BR2_DEFCONFIG
@@ -193,7 +193,7 @@ usage() {
     echo "Options:"
     echo "  -b,  --target-board <board>     Set the target board (Required)"
     echo "  -p,  --build-profile <profile>  Set the build profile (Required)"
-    echo "  -t,  --build-target <target>    Add a specific Buildroot target to build (for example, 'linux-rebuild'). Can be used multiple times to specify multiple targets."
+    echo "  -t,  --build-target <target>    Add a specific Buildroot target to build (for example, 'linux-rebuild'). Can be used multiple times to specify multiple targets"
     echo "  -def,--defconfig <config>       Override the default BR2_DEFCONFIG"
     echo "  -d,  --dry-run                  Enable dry run (print commands without executing)"
     echo "  -r,  --run-qemu                 Run in QEMU after building."
@@ -204,9 +204,9 @@ usage() {
     echo "                                  * All subsequent arguments are passed directly to QEMU."
     echo "  -h,  --help                     Show this help message and exit."
     echo ""
-    echo "Available Targets (-b):"
-    # Query keys under the 'targets' object
-    jq -r '.targets | keys | .[]' "$JSON_CFG" | sed 's/^/   - /'
+    echo "Available boards (-b):"
+    # Query keys under the 'boards' object
+    jq -r '.boards | keys | .[]' "$JSON_CFG" | sed 's/^/   - /'
     
     echo ""
     echo "Available Build Profiles (-p):"

@@ -24,8 +24,8 @@ main() {
     output_dir="$(${script_dir}/json_resolve_scripts/resolver.sh "${script_dir}/../env.json" "build.output_dir")"
 
     docker_base_cmd="$(${script_dir}/json_resolve_scripts/resolver.sh "${script_dir}/../env.json" "environment.BASE_DOCKER_CMD")"
-    docker_img="$(${script_dir}/json_resolve_scripts/resolver.sh "${script_dir}/../env.json" "targets.${TARGET_BOARD}.DOCKER_IMAGE")"
-    kernel_defconfig="$(${script_dir}/json_resolve_scripts/resolver.sh "${script_dir}/../env.json" "targets.${TARGET_BOARD}.KERNEL_DEFCONFIG")"
+    docker_img="$(${script_dir}/json_resolve_scripts/resolver.sh "${script_dir}/../env.json" "boards.${TARGET_BOARD}.DOCKER_IMAGE")"
+    kernel_defconfig="$(${script_dir}/json_resolve_scripts/resolver.sh "${script_dir}/../env.json" "boards.${TARGET_BOARD}.KERNEL_DEFCONFIG")"
 
     docker_cmd="${docker_base_cmd} --name debug0  $docker_img"
 

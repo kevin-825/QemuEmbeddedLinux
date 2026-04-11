@@ -8,7 +8,7 @@ JSON_CFG="$PROJECT_ROOT/env.json"
 jSON_RESOLVER="$PROJECT_ROOT/scripts/json_resolve_scripts/resolver.sh"
 
 TARGET_BOARD="qemu_riscv64_virt_board"
-BUILD_PROFILE="rootfsOnlyBuild"
+BUILD_PROFILE="customBuild"
 BUILD_TARGETS=() # Initialize as an array to hold multiple build targets if needed
 BUILD_KERNEL=false
 DRY_RUN=false

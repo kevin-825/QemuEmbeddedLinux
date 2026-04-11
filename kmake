@@ -101,6 +101,7 @@ parse_make_args() {
                 # Declare globally and export
                 declare -g "$key=$value"
                 export "$key"
+                echo " exported: $key=$value" >&2
             fi
         fi
     done
@@ -108,13 +109,24 @@ parse_make_args() {
 
 
 kmake() {
-    echo "ARCH: ${ARCH}"
+    echo "[kmake] ARCH: ${ARCH}"
     local img="${DOCKER_IMGs[${ARCH:-default}]}"
 
     if [[ -z "$img" ]]; then
         echo "Error: No Docker image found for architecture: ${ARCH}" >&2
         exit 1
     fi
+    # 1. Define the variables you want Docker to inherit
+    local allowed_env="ARCH CROSS_COMPILE KBUILD_OUT_DIR"
+    # 2. Dynamically build the Docker environment arguments
+    local -a docker_envs=()
+    for env_key in $allowed_env; do
+        # ${!env_key} gets the VALUE of the variable whose name is in env_key
+        # [[ -n ... ]] checks if that value is NOT empty
+        if [[ -n "${!env_key}" ]]; then
+            docker_envs+=("-e" "$env_key")
+        fi
+    done
 
     # 3. Build the command as an ARRAY (Professional standard)
     local cmd=()
@@ -124,7 +136,7 @@ kmake() {
         # Note: DOCKER_WRAPPER is split into elements automatically here
         cmd+=(docker run -it -e TERM="${TERM}" --rm 
               -v "${PROJECT_ROOT}:${PROJECT_ROOT}" 
-              ${dockerVolumes} 
+              ${dockerVolumes} "${docker_envs[@]}"
               -w "${PROJECT_ROOT}" 
               "$img")
     fi

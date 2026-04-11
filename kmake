@@ -6,7 +6,7 @@ source ./scripts/json_resolve_scripts/shell_exception_handling_core/exception_ha
 
 default_output_base_dir="/mnt/wsl/ramdisk5/kbuild_out"
 
-KBUILD_OUT_DIR="${KBUILD_OUT_DIR:-${default_output_base_dir}/${ARCH:-unknown_arch}}"
+
 KERNEL_SRC_PATH="${KERNEL_SRC_PATH:-/mnt/wsl/disk2/OffRepos/linux}"
 
 declare -A DOCKER_IMGs=(
@@ -15,6 +15,97 @@ declare -A DOCKER_IMGs=(
     ["arm"]="kflyn825/arm_dev_u24:latest"
     ["arm64"]="kflyn825/arm_dev_u24:latest"
 )
+
+
+merge_KCONFIG_ALLCONFIG() {
+    local -a args=("$@")
+    local -a final_args=()
+    local merged_file="${KBUILD_OUT_DIR}/.kmake_merged_defconfig"
+
+    for arg in "${args[@]}"; do
+        # Check if the argument starts with our specific key
+        if [[ "$arg" == mKCONFIG_ALLCONFIG=* ]]; then
+            # Extract everything after the '=' safely
+            local file_list="${arg#*=}"
+            
+            # Remove any literal surrounding quotes if they were passed in as part of the string
+            file_list="${file_list%\"}"
+            file_list="${file_list#\"}"
+            file_list="${file_list%\'}"
+            file_list="${file_list#\'}"
+
+            # Convert the list into an array to handle the individual files
+            local -a files=($file_list)
+
+            if [[ ${#files[@]} -eq 1 ]]; then
+                final_args+=("KCONFIG_ALLCONFIG=${files[0]}")
+            else
+                mkdir -p "$(dirname "$merged_file")"
+                echo "[sdk] Merged seed detected. Consolidating fragments..." >&2
+                
+                : > "$merged_file"
+                for f in "${files[@]}"; do
+                    local src="$f"
+                    # Resolve paths relative to kernel source if needed
+                    [[ ! -f "$src" && -f "${KERNEL_SRC_PATH}/$src" ]] && src="${KERNEL_SRC_PATH}/$src"
+                    
+                    if [[ -f "$src" ]]; then
+                        echo "# From $f" >> "$merged_file"
+                        cat "$src" >> "$merged_file"
+                        echo "" >> "$merged_file"
+                    else
+                        echo "Error: Configuration fragment not found: $f" >&2
+                        exit 1
+                    fi
+                done
+                final_args+=("KCONFIG_ALLCONFIG=$merged_file")
+            fi
+        else
+            # Keep other arguments exactly as they are
+            final_args+=("$arg")
+        fi
+    done
+
+    # Print the final arguments for the caller to capture
+    echo "${final_args[@]}"
+}
+
+parse_make_args() {
+    # 1. Convert the first argument (the whitelist string) into an array
+    local -a allowed_keys=($1)
+    shift
+    
+    for arg in "$@"; do
+        # Check if it's a key=value pair
+        if [[ "$arg" == *"="* ]]; then
+            local key="${arg%%=*}"
+            local value="${arg#*=}"
+            local is_valid=0
+            
+            # 3. Loop through the allowed keys to see if we have a match
+            for valid_key in "${allowed_keys[@]}"; do
+                if [[ "$key" == "$valid_key" ]]; then
+                    is_valid=1
+                    break # We found a match, no need to keep checking this key
+                fi
+            done
+            
+            # 4. If it matched a key in our loop, process it
+            if [[ $is_valid -eq 1 ]]; then
+                # Safely strip surrounding quotes
+                value="${value%\"}"
+                value="${value#\"}"
+                value="${value%\'}"
+                value="${value#\'}"
+                
+                # Declare globally and export
+                declare -g "$key=$value"
+                export "$key"
+            fi
+        fi
+    done
+}
+
 
 kmake() {
     echo "ARCH: ${ARCH}"
@@ -50,4 +141,14 @@ kmake() {
     "${cmd[@]}"
 }
 
-kmake "$@"
+main() {
+    parse_make_args "ARCH CROSS_COMPILE" "$@"
+
+    local -a parsed_args
+    KBUILD_OUT_DIR="${KBUILD_OUT_DIR:-${default_output_base_dir}/${ARCH:-unknown_arch}}"
+    read -ra parsed_args <<< "$(merge_KCONFIG_ALLCONFIG "$@")"
+
+    kmake "${parsed_args[@]}"
+}
+
+main "$@"

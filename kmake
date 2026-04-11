@@ -1,22 +1,53 @@
+#!/bin/bash
 
+PROJECT_ROOT=$(dirname "$(readlink -f "$0")" )
+# Assuming exception_handling_core.sh is in your repo
+source ./scripts/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
 
+default_output_base_dir="/mnt/wsl/ramdisk5/kbuild_out"
+
+KBUILD_OUT_DIR="${KBUILD_OUT_DIR:-${default_output_base_dir}/${ARCH:-unknown_arch}}"
+KERNEL_SRC_PATH="${KERNEL_SRC_PATH:-/mnt/wsl/disk2/OffRepos/linux}"
+
+declare -A DOCKER_IMGs=(
+    ["default"]="kflyn825/rvdev:latest"
+    ["riscv"]="kflyn825/rvdev:latest"
+    ["arm"]="kflyn825/arm_dev_u24:latest"
+    ["arm64"]="kflyn825/arm_dev_u24:latest"
+)
 
 kmake() {
-    # Using "$@" perfectly preserves arguments with spaces
-    local cmd=(make -C "$KERNEL_SRC_PATH" O="$KERNEL_BUILD_OUT_PATH" "$@")
-    echo "[exec] ${cmd[*]}"
-    
-    # Uncomment to actually run the command
-    #"${cmd[@]}" 
+    echo "ARCH: ${ARCH}"
+    local img="${DOCKER_IMGs[${ARCH:-default}]}"
+
+    if [[ -z "$img" ]]; then
+        echo "Error: No Docker image found for architecture: ${ARCH}" >&2
+        exit 1
+    fi
+
+    # 3. Build the command as an ARRAY (Professional standard)
+    local cmd=()
+
+    # Prepend Docker if not already in a container
+    if [[ ! -f /.dockerenv ]]; then
+        # Note: DOCKER_WRAPPER is split into elements automatically here
+        cmd+=(docker run -it -e TERM="${TERM}" --rm 
+              -v "${PROJECT_ROOT}:${PROJECT_ROOT}" 
+              ${dockerVolumes} 
+              -w "${PROJECT_ROOT}" 
+              "$img")
+    fi
+
+    # Append the Make command
+    cmd+=(make -C "$KERNEL_SRC_PATH" O="$KBUILD_OUT_DIR" "$@")
+
+    echo "----------------------------------------"
+    # Print the array elements joined by spaces for debugging
+    echo "[exec] ${cmd[*]}" | sed -r 's/[[:space:]]{4,}/    \n  /g'
+    echo "----------------------------------------"
+
+    # 4. Execute the array safely (Preserves quotes)
+    "${cmd[@]}"
 }
 
-
-
-main() {
-    echo "[Info]  kernel make wrapper starting ... "
-    echo "[Info]  basic args: KERNEL_SRC_PATH=${KERNEL_SRC_PATH}    KERNEL_BUILD_OUT_PATH=${KERNEL_BUILD_OUT_PATH}"
-    check_args
-    kmake "$@"
-}
-
-main "$@"
+kmake "$@"

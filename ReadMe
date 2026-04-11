@@ -46,6 +46,15 @@ to build using builtroot:
 
 
 
+kmake dock:
+./kmake kernelversion
+ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- ./kmake kernelversion
+
+ARCH=riscv ./kmake KCONFIG_ALLCONFIG="arch/riscv/configs/defconfig" allnoconfig
+
+
+
+
 
 
 

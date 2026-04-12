@@ -13,11 +13,11 @@ to build linux kernel only:
 
 
 to configure buildroot:
-./setup_defconfig.sh -b qemu_aarch64_virt_board  -c -m -s -ld rootfsOnlyBuild_qemu_aarch64_virt_defconfig
-./setup_defconfig.sh -b qemu_aarch64_virt_board  -c -m -s -ld customBuild_qemu_aarch64_virt_defconfig
+./setup_br2_defconfig.sh -b qemu_aarch64_virt_board  -c -m -s -ld rootfsOnlyBuild_qemu_aarch64_virt_defconfig
+./setup_br2_defconfig.sh -b qemu_aarch64_virt_board  -c -m -s -ld customBuild_qemu_aarch64_virt_defconfig
 
-./setup_defconfig.sh -b qemu_riscv64_virt_board  -c -m -s -ld rootfsOnlyBuild_qemu_riscv64_virt_defconfig
-./setup_defconfig.sh -b qemu_riscv64_virt_board  -c -m -s -ld customBuild_qemu_riscv64_virt_defconfig
+./setup_br2_defconfig.sh -b qemu_riscv64_virt_board  -c -m -s -ld rootfsOnlyBuild_qemu_riscv64_virt_defconfig
+./setup_br2_defconfig.sh -b qemu_riscv64_virt_board  -c -m -s -ld customBuild_qemu_riscv64_virt_defconfig
 
 
 

@@ -66,7 +66,18 @@ mkdir -p /mnt/wsl/ramdisk5/kbuild_out/riscv
 cp ./external/board/qemu_riscv64_virt_board/kernel_configs/riscv_virt_minimal_DEBUG_defconfig /mnt/wsl/ramdisk5/kbuild_out/riscv/.config
 
 
+for aarch64 kernel:
+./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu-  mKCONFIG_ALLCONFIG='"arch/arm64/configs/defconfig arch/arm64/configs/virt.config"' allnoconfig
+./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- nconfig
+./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- savedefconfig
+./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- 
+cp /mnt/wsl/ramdisk5/kbuild_out/arm64/defconfig /mnt/wsl/ramdisk5/QemuEmbeddedLinux/external/board/qemu_aarch64_virt_board/kernel_configs/arm64_virt_minimal_defconfig 
+./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j$(nproc) all
 
+mkdir -p /mnt/wsl/ramdisk5/kbuild_out/arm64
+cp /mnt/wsl/ramdisk5/QemuEmbeddedLinux/external/board/qemu_aarch64_virt_board/kernel_configs/arm64_virt_minimal_defconfig /mnt/wsl/ramdisk5/kbuild_out/arm64/.config
+./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- olddefconfig
+./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j$(nproc) all
 
 
 

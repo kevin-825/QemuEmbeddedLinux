@@ -1,9 +1,22 @@
 # Auto-generated Config.in for QEMUEMBEDDEDLINUX
 
+config BR2_EXTERNAL_KMODE_DEV_ALL
+    bool "Build all kernel modules"
+    help
+      If selected, all kernel modules in the external tree will be built.
+
+config BR2_EXTERNAL_PACKAGE_DEV_ALL
+    bool "Build all external app packages"
+    help
+      If selected, all app packages in the external tree will be built.
+
 menu "External Loadable Kernel Modules"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/LFD420_labs/primitive_lab_0/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/LFD420_labs/primitive_lab_1/Config.in"
 source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/example_mod/foo/Config.in"
 source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/example_mod/helloMod/Config.in"
 endmenu
 
 menu "External Custom Packages"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/hello_app/Config.in"
 endmenu

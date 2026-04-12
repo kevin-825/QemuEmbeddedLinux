@@ -105,11 +105,16 @@ ${upper}_MODULE_MAKE_OPTS = \
 EOF
 
     # 2. Create the Config.in file
+    echo "To build and install the "$mod_name" kernel module, use the following:"
+    echo "BR2_PACKAGE_${upper}=y"
+    echo "To build and install ALL of the kernel modules, use the following:"
+    echo "BR2_EXTERNAL_KMODE_DEV_ALL=y"
     cat <<EOF > "$mod_dir/Config.in"
 config BR2_PACKAGE_${upper}
     bool "$mod_name module"
     #depends on BR2_LINUX_KERNEL
     #select BR2_PACKAGE_HOST_LINUX_HEADERS
+    default y if BR2_EXTERNAL_KMODE_DEV_ALL
     help
       Auto-generated kernel module extension for $mod_name.
 EOF
@@ -220,9 +225,14 @@ setup_external_package() {
     local config_in="$package_dir/Config.in"
 
     # 1. Create the Config.in file
+    echo "To build and install the "$package_name" app package, use the following:"
+    echo "BR2_PACKAGE_${upper}=y"
+    echo "To build and install ALL of the app packages, use the following:"
+    echo "BR2_EXTERNAL_PACKAGE_DEV_ALL=y"
     cat <<EOF > "$config_in"
 config BR2_PACKAGE_${upper}
 	bool "$package_name"
+    default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
 	help
 	  Auto-generated user-space application package for $package_name.
 EOF
@@ -321,6 +331,16 @@ EOF
     # 3. Generate Config.in dynamically using bash
     cat <<EOF > "$ext_config_in_file"
 # Auto-generated Config.in for $EXT_NAME
+
+config BR2_EXTERNAL_KMODE_DEV_ALL
+    bool "Build all kernel modules"
+    help
+      If selected, all kernel modules in the external tree will be built.
+
+config BR2_EXTERNAL_PACKAGE_DEV_ALL
+    bool "Build all external app packages"
+    help
+      If selected, all app packages in the external tree will be built.
 
 menu "External Loadable Kernel Modules"
 EOF

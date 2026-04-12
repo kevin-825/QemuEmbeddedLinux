@@ -1,0 +1,7 @@
+config BR2_PACKAGE_PRIMITIVE_LAB_1
+    bool "primitive_lab_1 module"
+    #depends on BR2_LINUX_KERNEL
+    #select BR2_PACKAGE_HOST_LINUX_HEADERS
+    default y if BR2_EXTERNAL_KMODE_DEV_ALL
+    help
+      Auto-generated kernel module extension for primitive_lab_1.

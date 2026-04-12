@@ -2,5 +2,6 @@ config BR2_PACKAGE_FOO
     bool "foo module"
     #depends on BR2_LINUX_KERNEL
     #select BR2_PACKAGE_HOST_LINUX_HEADERS
+    default y if BR2_EXTERNAL_KMODE_DEV_ALL
     help
       Auto-generated kernel module extension for foo.

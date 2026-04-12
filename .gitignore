@@ -1,3 +1,4 @@
 shared/buildroot_ccache
 scripts/gdb_helper/gdb_log.txt
+scripts/auto_gdbinit
 

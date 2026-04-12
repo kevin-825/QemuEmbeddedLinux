@@ -52,8 +52,8 @@ setup_board() {
 # --- Module: Kernel Module Setup ---
 setup_external_linux_module() {
     if [[ ! -d "$EXTERNAL_PATH/$EXT_KMOD_DIR_NAME" ]]; then
-        echo ">>> [ERROR] Kernel modules directory does not exist. Please create it first: mkdir -p $EXTERNAL_PATH/$EXT_KMOD_DIR_NAME"
-        exit 1
+        echo ">>> [Info] Kernel modules directory does not exist. Creating it: $EXTERNAL_PATH/$EXT_KMOD_DIR_NAME"
+        mkdir -p "$EXTERNAL_PATH/$EXT_KMOD_DIR_NAME"
     fi
     local path_to_mod_name="$1"
     local mod_name="$(basename "$path_to_mod_name")"
@@ -214,10 +214,9 @@ setup_external_package() {
         echo ">>> [Info] Package directory already exists: $package_dir, exiting to avoid overwriting."
         exit 1
     fi
+    mkdir -p "$package_dir/src"
     local relative_path_ext_dir=$(realpath --relative-to="$EXTERNAL_PATH" "$package_dir")
     echo ">>> [Info] Creating new package directory: $package_dir"
-    
-    mkdir -p "$package_dir/src"
 
     local main_c_file="$package_dir/src/main.c"
     local package_makefile="$package_dir/src/Makefile"

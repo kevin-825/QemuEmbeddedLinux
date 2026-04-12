@@ -12,7 +12,7 @@ build_minimal_rv_virt() {
     ./kmake ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- olddefconfig
     ./kmake ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- -j$(nproc) all
 
-    #return 0
+    local rootfs_path="/mnt/wsl/disk2/.br2_output/qemu_riscv64_virt_board/customBuild/images/rootfs.ext4"
 
     run_in_docker qemu-system-riscv64 \
     -M virt \
@@ -22,7 +22,7 @@ build_minimal_rv_virt() {
     -nographic \
     -kernel /mnt/wsl/ramdisk5/kbuild_out/riscv/arch/riscv/boot/Image \
     -append "console=ttyS0 root=/dev/vda ro earlycon" \
-    -drive file=/mnt/wsl/ramdisk5/out/qemu_riscv64_virt_board/customBuild/images/rootfs.ext4,format=raw,id=hd0,if=none \
+    -drive file=$rootfs_path,format=raw,id=hd0,if=none \
     -device virtio-blk-device,drive=hd0
 
 }
@@ -37,17 +37,19 @@ build_minimal_arm64_virt() {
     ./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- olddefconfig
     ./kmake ARCH=arm64 CROSS_COMPILE=aarch64-none-linux-gnu- -j$(nproc) all
 
-    return 0
+    local rootfs_path="/mnt/wsl/disk2/.br2_output/qemu_aarch64_virt_board/customBuild/images/rootfs.ext4"
 
-    run_in_docker qemu-system-aarch64 \
-    -M virt \
-    -cpu cortex-a72 \
-    -m 1G \
-    -smp 4 \
-    -nographic \
-    -kernel /mnt/wsl/ramdisk5/kbuild_out/arm64/arch/arm64/boot/Image \
-    -append "console=ttyS0 root=/dev/vda ro earlycon" \
-    -drive file=/mnt/wsl/ramdisk5/out/qemu_aarch64_virt_board/customBuild/images/rootfs.ext4,format=raw,id=hd0,if=none \
-    -device virtio-blk-device,drive=hd0
+    run_in_docker \
+    qemu-system-aarch64 \
+        -M virt \
+        -cpu max \
+        -smp 4 \
+        -m 2G \
+        -kernel /mnt/wsl/ramdisk5/kbuild_out/arm64/arch/arm64/boot/Image \
+        -append "root=/dev/vda rw console=ttyAMA0 earlycon" \
+        -drive if=none,file=$rootfs_path,id=hd0,format=raw \
+        -device virtio-blk-device,drive=hd0 \
+        -netdev user,id=net0 -device virtio-net-device,netdev=net0 \
+        -nographic
 
 }

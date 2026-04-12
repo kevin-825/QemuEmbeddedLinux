@@ -6,8 +6,9 @@ source ./scripts/json_resolve_scripts/shell_exception_handling_core/exception_ha
 
 default_output_base_dir="/mnt/wsl/ramdisk5/kbuild_out"
 
-
-KERNEL_SRC_PATH="${KERNEL_SRC_PATH:-/mnt/wsl/disk2/OffRepos/linux}"
+KERNEL_SRC_PATH_0="/mnt/wsl/ramdisk5/linux"
+KERNEL_SRC_PATH_1="/mnt/wsl/disk2/OffRepos/linux"
+KERNEL_SRC_PATH="${KERNEL_SRC_PATH:-$KERNEL_SRC_PATH_0}"
 
 declare -A DOCKER_IMGs=(
     ["default"]="kflyn825/rvdev:latest"
@@ -154,7 +155,7 @@ kmake() {
 }
 
 main() {
-    parse_make_args "ARCH CROSS_COMPILE" "$@"
+    parse_make_args "ARCH CROSS_COMPILE KERNEL_SRC_PATH KBUILD_OUT_DIR" "$@"
 
     local -a parsed_args
     KBUILD_OUT_DIR="${KBUILD_OUT_DIR:-${default_output_base_dir}/${ARCH:-unknown_arch}}"

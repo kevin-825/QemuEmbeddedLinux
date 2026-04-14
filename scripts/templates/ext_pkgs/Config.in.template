@@ -1,0 +1,5 @@
+config BR2_PACKAGE_${upper}
+  bool "${package_name}"
+  default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
+  help
+    Auto-generated user-space application package for ${package_name}.

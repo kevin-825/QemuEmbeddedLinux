@@ -1,5 +1,5 @@
 config BR2_PACKAGE_HELLO_APP
-	bool "hello_app"
-    default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
-	help
-	  Auto-generated user-space application package for hello_app.
+  bool "hello_app"
+  default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
+  help
+    Auto-generated user-space application package for hello_app.

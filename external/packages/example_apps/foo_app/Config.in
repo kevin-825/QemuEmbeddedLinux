@@ -1,5 +1,5 @@
 config BR2_PACKAGE_FOO_APP
-	bool "foo_app"
-    default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
-	help
-	  Auto-generated user-space application package for foo_app.
+  bool "foo_app"
+  default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
+  help
+    Auto-generated user-space application package for foo_app.

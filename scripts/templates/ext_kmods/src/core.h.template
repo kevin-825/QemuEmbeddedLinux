@@ -1,0 +1,26 @@
+/*
+ * Auto-generated header for ${mod_name}
+ * Author: Kevin
+ * Date: 
+ * Description: Core API definitions for ${mod_name}.
+ */
+
+#ifndef _EXT_KMOD_${upper}_CORE_H_
+#define _EXT_KMOD_${upper}_CORE_H_
+
+/*
+ * ============================================================================
+ * Internal Return Status Codes
+ * ============================================================================
+ */
+enum ${mod_name}_status {
+    ${upper}_SUCCESS     =  0,
+    ${upper}_ERR_BUSY    = -1,
+    ${upper}_ERR_MEM     = -2,
+    ${upper}_ERR_IO      = -3,
+    ${upper}_ERR_TIMEOUT = -4
+};
+
+/* Future internal core definitions and state structures go here */
+
+#endif /* _EXT_KMOD_${upper}_CORE_H_ */

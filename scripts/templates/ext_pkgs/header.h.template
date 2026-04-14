@@ -1,0 +1,36 @@
+/*
+ * Auto-generated header for ${package_name}
+ */
+#ifndef EXT_PKG_${upper}_H_
+#define EXT_PKG_${upper}_H_
+
+#include <stdint.h>
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define ${upper}_VERSION_MAJOR 1
+#define ${upper}_VERSION_MINOR 0
+#define ${upper}_VERSION_PATCH 0
+
+/* Universal Status Codes */
+typedef enum {
+    ${upper}_SUCCESS    =  0,
+    ${upper}_FINISHED   =  1,  
+    ${upper}_ERR_INVAL  = -1,
+    ${upper}_ERR_NOMEM  = -2,
+    ${upper}_ERR_IO     = -3
+} ${package_name}_status_t;
+
+/* Opaque context pointer */
+typedef struct ${package_name}_ctx ${package_name}_ctx_t;
+
+/* Core API */
+
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* EXT_PKG_${upper}_H_ */

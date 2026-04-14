@@ -1,0 +1,41 @@
+################################################################################
+# ${upper}
+################################################################################
+
+${upper}_VERSION = 1.0.0
+${upper}_SITE = $(BR2_EXTERNAL_${EXT_NAME}_PATH)/${relative_path_ext_dir}/src
+${upper}_SITE_METHOD = local
+
+# --- Hierarchical Debug Logic ---
+# Default to OFF
+${upper}_DEBUG_FLAG = DEBUG_ENABLE=n
+
+# Turn ON if the Global override is active
+ifeq ($(BR2_GLOBAL_KMOD_DEBUG),y)
+    ${upper}_DEBUG_FLAG = DEBUG_ENABLE=y
+endif
+
+# Turn ON if this specific module's debug is active
+ifeq ($(BR2_PACKAGE_${upper}_DEBUG),y)
+    ${upper}_DEBUG_FLAG = DEBUG_ENABLE=y
+endif
+
+# 1. Tell Buildroot this package exports public files to other packages
+${upper}_INSTALL_STAGING = YES
+
+
+# --- Kernel Module Configuration ---
+${upper}_MODULE_MAKE_OPTS = \
+    CONFIG_${upper}=m \
+    $( ${upper}_DEBUG_FLAG ) \
+    DEPENDENCY_DIRS=""
+
+
+# 2. Tell Buildroot HOW to install the header into the staging sysroot
+define ${upper}_INSTALL_STAGING_CMDS
+	$(MAKE) -C $(@D) DESTDIR=$(STAGING_DIR) install_headers
+endef
+
+# --- Package Evaluation ---
+$(eval $(kernel-module))
+$(eval $(generic-package))

@@ -1,6 +1,6 @@
 #!/bin/bash
 source ./scripts/json_resolve_scripts/shell_exception_handling_core/exception_handling_core.sh
-
+set -e
 # --- Global Variables ---
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd -P)
 export PROJECT_ROOT="${SCRIPT_DIR}"
@@ -14,7 +14,7 @@ log_debug() {
 }
 
 RAW_PROJECT_NAME=$($jSON_RESOLVER "$JSON_CFG" "project_name")
-EXT_NAME=$(echo "$RAW_PROJECT_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+export EXT_NAME=$(echo "$RAW_PROJECT_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 EXTERNAL_PATH=$($jSON_RESOLVER "$JSON_CFG" "environment.EXTERNAL_DIR")
 
 if [[ -z "$EXTERNAL_PATH" || "$EXTERNAL_PATH" == "null" ]]; then
@@ -56,20 +56,20 @@ setup_external_linux_module() {
         mkdir -p "$EXTERNAL_PATH/$EXT_KMOD_DIR_NAME"
     fi
     local path_to_mod_name="$1"
-    local mod_name="$(basename "$path_to_mod_name")"
+    export mod_name="$(basename "$path_to_mod_name")"
     # 1. Strip the known prefixes (Pure Bash, no subshells)
     local clean_path="${path_to_mod_name#${EXT_DIR_NAME}/}"
     clean_path="${clean_path#${EXT_KMOD_DIR_NAME}/}"
     local full_path_to_mod="$EXTERNAL_PATH/$EXT_KMOD_DIR_NAME/$clean_path"
-    local upper="$(echo "$mod_name" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
+    export upper="$(echo "$mod_name" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
     
     if [[ -d "$full_path_to_mod" ]]; then
         echo ">>> [Info] Module directory already exists: $full_path_to_mod"
         exit 1
     fi
-    mkdir -p "$full_path_to_mod/src"
+    mkdir -p "$full_path_to_mod/src/uapi"
 
-    local relative_path_ext_dir=$(realpath --relative-to="$EXTERNAL_PATH" "$full_path_to_mod")
+    export relative_path_ext_dir=$(realpath --relative-to="$EXTERNAL_PATH" "$full_path_to_mod")
     local mod_dir="$EXTERNAL_PATH/$relative_path_ext_dir"
 
 
@@ -81,119 +81,28 @@ setup_external_linux_module() {
     log_debug ">>> [Info] Full path to module: $full_path_to_mod"
     log_debug ">>> [Info] Relative path to module (from external dir): $relative_path_ext_dir"
 
+    local allowed_vars='${mod_name} ${upper} ${EXT_NAME} ${relative_path_ext_dir}'
+    local template_dir="$SCRIPT_DIR/scripts/templates/ext_kmods"
 
+    # 4. Execute the template substitutions
+    envsubst "$allowed_vars" < "$template_dir/Config.in.template"   > "$mod_dir/Config.in"
+    envsubst "$allowed_vars" < "$template_dir/packages.mk.template" > "$mod_dir/${mod_name}.mk"
+    
+    envsubst "$allowed_vars" < "$template_dir/src/Makefile.template" > "$mod_dir/src/Makefile"
+    
+    envsubst "$allowed_vars" < "$template_dir/src/core.c.template"  > "$mod_dir/src/${mod_name}_core.c"
+    envsubst "$allowed_vars" < "$template_dir/src/core.h.template"  > "$mod_dir/src/${mod_name}_core.h"
+    
+    envsubst "$allowed_vars" < "$template_dir/src/debug.c.template" > "$mod_dir/src/${mod_name}_debug.c"
+    envsubst "$allowed_vars" < "$template_dir/src/debug.h.template" > "$mod_dir/src/${mod_name}_debug.h"
+    
+    envsubst "$allowed_vars" < "$template_dir/src/uapi/uapi.h.template" > "$mod_dir/src/uapi/${mod_name}_uapi.h"
 
-    mkdir -p "$mod_dir/src"
+    # 5. Clean up the exported environment variables
+    unset mod_name upper relative_path_ext_dir
 
-    # 1. Create the .mk file
-    cat <<EOF > "$mod_dir/$mod_name.mk"
-################################################################################
-# $mod_name
-################################################################################
+    echo ">>> [Success] Module $mod_name generated successfully at $mod_dir"
 
-${upper}_VERSION = 1.0
-${upper}_SITE = \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/$relative_path_ext_dir
-${upper}_SITE_METHOD = local
-${upper}_MODULE_SUBDIRS = src
-
-# Optional: Add custom compiler flags here
-${upper}_MODULE_MAKE_OPTS = \
-    KCFLAGS="-Werror"
-
-\$(eval \$(kernel-module))
-\$(eval \$(generic-package))
-EOF
-
-    # 2. Create the Config.in file
-    echo "To build and install the "$mod_name" kernel module, use the following:"
-    echo "BR2_PACKAGE_${upper}=y"
-    echo "To build and install ALL of the kernel modules, use the following:"
-    echo "BR2_EXTERNAL_KMODE_DEV_ALL=y"
-    cat <<EOF > "$mod_dir/Config.in"
-config BR2_PACKAGE_${upper}
-    bool "$mod_name module"
-    #depends on BR2_LINUX_KERNEL
-    #select BR2_PACKAGE_HOST_LINUX_HEADERS
-    default y if BR2_EXTERNAL_KMODE_DEV_ALL
-    help
-      Auto-generated kernel module extension for $mod_name.
-EOF
-
-    # 3. Create the pure Kbuild Makefile
-# 3. Create the Hybrid Kbuild/Manual Makefile with Strict Environment Checks
-    cat <<EOF > "$mod_dir/src/Makefile"
-MODULE_NAME = $mod_name
-
-# ------------------------------------------------------------------------------
-# PATH 1: Kbuild Context (Invoked by Buildroot)
-# ------------------------------------------------------------------------------
-ifneq (\$(KERNELRELEASE),)
-
-\$(info ">>> [Info] Running in Kbuild context. Building $mod_name as a kernel module.")
-
-obj-m += \$(MODULE_NAME).o
-
-# Kbuild sets \$(src) to the absolute path of this directory
-MODULE_SRCs := \$(wildcard \$(src)/*.c)
-MODULE_OBJs := \$(patsubst \$(src)/%.c,%.o,\$(MODULE_SRCs))
-
-\$(MODULE_NAME)-y := \$(MODULE_OBJs)
-
-# ------------------------------------------------------------------------------
-# PATH 2: Manual GNU Make Context (Invoked directly by the user)
-# ------------------------------------------------------------------------------
-else
-\$(info ">>> [Info] Running in manual make context.")
-\$(info ">>> [Info] Exported variables: ARCH=\$(ARCH), CROSS_COMPILE=\$(CROSS_COMPILE), PRE_BUILT_KERNEL_OUT_DIR=\$(PRE_BUILT_KERNEL_OUT_DIR)")
-
-# --- Strict Environment Checks ---
-ifndef ARCH
-\$(error [FATAL] ARCH is not exported in the environment. Please run your setup script first.)
-endif
-
-ifndef CROSS_COMPILE
-\$(error [FATAL] CROSS_COMPILE is not exported in the environment. Please run your setup script first.)
-endif
-
-ifndef PRE_BUILT_KERNEL_OUT_DIR
-\$(error [FATAL] PRE_BUILT_KERNEL_OUT_DIR is not exported in the environment. Please run your setup script first.)
-endif
-
-PWD := \$(shell pwd)
-
-.PHONY: all clean install
-
-all:
-	\$(MAKE) -C \$(PRE_BUILT_KERNEL_OUT_DIR) M=\$(PWD) ARCH=\$(ARCH) CROSS_COMPILE=\$(CROSS_COMPILE) modules
-
-clean:
-	\$(MAKE) -C \$(PRE_BUILT_KERNEL_OUT_DIR) M=\$(PWD) ARCH=\$(ARCH) CROSS_COMPILE=\$(CROSS_COMPILE) clean
-
-install:
-	\$(MAKE) -C \$(PRE_BUILT_KERNEL_OUT_DIR) M=\$(PWD) ARCH=\$(ARCH) CROSS_COMPILE=\$(CROSS_COMPILE) INSTALL_MOD_PATH=\$(INSTALL_DIR) modules_install
-
-endif
-EOF
-
-    # 4. Create the C stub
-    cat <<EOF > "$mod_dir/src/main.c"
-#include <linux/init.h>
-#include <linux/module.h>
-
-MODULE_LICENSE("GPL");
-
-static int __init ${mod_name}_init(void) {
-    printk(KERN_INFO "${mod_name}: Loaded\n");
-    return 0;
-}
-
-static void __exit ${mod_name}_exit(void) {
-    printk(KERN_INFO "${mod_name}: Unloaded\n");
-}
-
-module_init(${mod_name}_init);
-module_exit(${mod_name}_exit);
-EOF
 }
 
 # --- Module: Application Package Setup ---
@@ -204,103 +113,34 @@ setup_external_package() {
     fi
 
     local path_to_package_name="$1"
-    local package_name="$(basename "$path_to_package_name")"
+    export package_name="$(basename "$path_to_package_name")"
     local clean_path="${path_to_package_name#${EXT_DIR_NAME}/}"
     clean_path="${clean_path#${EXT_PACKAGE_DIR_NAME}/}"
     local package_dir="$EXTERNAL_PATH/$EXT_PACKAGE_DIR_NAME/$clean_path"
-    local upper="$(echo "$package_name" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
+    export upper="$(echo "$package_name" | tr '[:lower:]' '[:upper:]' | tr '-' '_')"
     
     if [[ -d "$package_dir" ]]; then
         echo ">>> [Info] Package directory already exists: $package_dir, exiting to avoid overwriting."
         exit 1
     fi
     mkdir -p "$package_dir/src"
-    local relative_path_ext_dir=$(realpath --relative-to="$EXTERNAL_PATH" "$package_dir")
-    echo ">>> [Info] Creating new package directory: $package_dir"
+    export relative_path_ext_dir=$(realpath --relative-to="$EXTERNAL_PATH" "$package_dir")
+    echo ">>> [Info] Creating the package:${package_name}    at directory: $package_dir"
+    local template_dir="$SCRIPT_DIR/scripts/templates/ext_pkgs"
+    echo ">>> [Info] Using template directory: $template_dir"
+    # We pass the specific variables we want to replace to envsubst 
+    # to prevent it from accidentally replacing system environment variables.
+    local allowed_vars='${package_name} ${upper} ${EXT_NAME} ${relative_path_ext_dir}'
 
-    local main_c_file="$package_dir/src/main.c"
-    local package_makefile="$package_dir/src/Makefile"
-    local package_mk_file="$package_dir/$package_name.mk"
-    local config_in="$package_dir/Config.in"
+    envsubst "$allowed_vars" < "$template_dir/Config.in.template" > "$package_dir/Config.in"
+    envsubst "$allowed_vars" < "$template_dir/pkg.mk.template"    > "$package_dir/$package_name.mk"
+    envsubst "$allowed_vars" < "$template_dir/Makefile.template"  > "$package_dir/src/Makefile"
+    envsubst "$allowed_vars" < "$template_dir/main.c.template"    > "$package_dir/src/main.c"
+    envsubst "$allowed_vars" < "$template_dir/header.h.template"  > "$package_dir/src/$package_name.h"
 
-    # 1. Create the Config.in file
-    echo "To build and install the "$package_name" app package, use the following:"
-    echo "BR2_PACKAGE_${upper}=y"
-    echo "To build and install ALL of the app packages, use the following:"
-    echo "BR2_EXTERNAL_PACKAGE_DEV_ALL=y"
-    cat <<EOF > "$config_in"
-config BR2_PACKAGE_${upper}
-	bool "$package_name"
-    default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
-	help
-	  Auto-generated user-space application package for $package_name.
-EOF
-
-    # 2. Create the Buildroot .mk file
-    # Note: We point the SITE directly to the src/ directory so Buildroot
-    # builds from there, and we pass TARGET_CONFIGURE_OPTS to enforce cross-compilation.
-    cat <<EOF > "$package_mk_file"
-################################################################################
-# $package_name
-################################################################################
-
-${upper}_VERSION = 1.0
-${upper}_SITE = \$(BR2_EXTERNAL_${EXT_NAME}_PATH)/$relative_path_ext_dir/src
-${upper}_SITE_METHOD = local
-
-define ${upper}_BUILD_CMDS
-	\$(MAKE) \$(TARGET_CONFIGURE_OPTS) -C \$(@D) all
-endef
-
-define ${upper}_INSTALL_TARGET_CMDS
-	\$(INSTALL) -D -m 0755 \$(@D)/$package_name \$(TARGET_DIR)/usr/bin/$package_name
-endef
-
-\$(eval \$(generic-package))
-EOF
-
-    # 3. Create the Standard C Makefile
-    # Note: We use ?= for CC and CFLAGS so Buildroot can override them 
-    # with the cross-compiler via TARGET_CONFIGURE_OPTS.
-    cat <<EOF > "$package_makefile"
-# Auto-generated Makefile for $package_name
-CC ?= gcc
-CFLAGS ?= -Wall -O2
-MODULE_SRCs := \$(wildcard *.c)
-MODULE_ASMs := \$(wildcard *.S)
-MODULE_ASMs += \$(wildcard *.s)
-MODULE_OBJs := \$(MODULE_SRCs:.c=.o) \$(MODULE_ASMs:.S=.o)
-
-.PHONY: all clean
-
-all: $package_name
-
-$package_name: \$(MODULE_OBJs)
-	\$(CC) \$(LDFLAGS) -o \$@ \$^
-
-\$(MODULE_OBJs): %.o: %.c
-	\$(CC) \$(CFLAGS) -c -o \$@ \$<
-
-\$(MODULE_OBJs): %.o: %.S
-	\$(CC) \$(CFLAGS) -c -o \$@ \$<
-\$(MODULE_OBJs): %.o: %.s
-    \$(CC) \$(CFLAGS) -c -o \$@ \$<
-
-clean:
-	rm -f *.o $package_name
-EOF
-
-    # 4. Create the C Application Stub
-    cat <<EOF > "$main_c_file"
-#include <stdio.h>
-
-int main(int argc, char **argv) {
-    printf("Hello from $package_name user-space application!\\n");
-    return 0;
-}
-EOF
-
+    # Clean up the environment variables
     echo ">>> [SUCCESS] Created user-space package: $package_name"
+    unset package_name upper current_date relative_path_ext_dir
 }
 
 # --- Module: Master Config Generator ---

@@ -1,5 +1,0 @@
-config BR2_PACKAGE_LFD401_LAB1_LIB
-  bool "LFD401_lab1_lib"
-  default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
-  help
-    Auto-generated user-space application package for LFD401_lab1_lib.

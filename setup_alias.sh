@@ -57,17 +57,14 @@ build_minimal_arm64_virt() {
 add_my_kernel_modules_and_packages() {      
 
     
-    ./setup_external.sh -m external/kernel_modules/LFD420_labs/primitive_lab_0
-    ./setup_external.sh -m external/kernel_modules/LFD420_labs/primitive_lab_1
+    ./setup_external.sh -m external/kernel_modules/LFD420_labs/lab0_primitive
     ./setup_external.sh -m external/kernel_modules/example_mod/helloMod
     ./setup_external.sh -m external/kernel_modules/example_mod/foo
 
 
-    ./setup_external.sh -p external/packages/hello_app
+
     ./setup_external.sh -p external/packages/example_apps/hello_world
     ./setup_external.sh -p external/packages/example_apps/foo_app
-    ./setup_external.sh -p external/packages/example_apps/bar_app
-    ./setup_external.sh -p external/packages/LFD401_lab/LFD401_lab0_compiler
-    ./setup_external.sh -p external/packages/LFD401_lab/LFD401_lab1_lib
+    ./setup_external.sh -p external/packages/LFD401_lab/lab0_primitive
 }
 

@@ -1,0 +1,16 @@
+config BR2_PACKAGE_LAB0_PRIMITIVE
+	bool "lab0_primitive"
+	depends on BR2_LINUX_KERNEL
+	default y if BR2_EXTERNAL_KMODE_DEV_ALL
+	help
+	  Enterprise out-of-tree kernel module and platform driver for lab0_primitive.
+
+if BR2_PACKAGE_LAB0_PRIMITIVE
+
+config BR2_PACKAGE_LAB0_PRIMITIVE_DEBUG
+	bool "Enable Debug Mode for lab0_primitive"
+	help
+	  Select this to compile the module with debug flags enabled.
+	  This will link debug.o and enable extra kernel logging.
+
+endif

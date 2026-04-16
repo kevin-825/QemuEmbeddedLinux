@@ -11,17 +11,13 @@ config BR2_EXTERNAL_PACKAGE_DEV_ALL
       If selected, all app packages in the external tree will be built.
 
 menu "External Loadable Kernel Modules"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/LFD420_labs/primitive_lab_0/Config.in"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/LFD420_labs/primitive_lab_1/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/LFD420_labs/lab0_primitive/Config.in"
 source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/example_mod/foo/Config.in"
 source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/kernel_modules/example_mod/helloMod/Config.in"
 endmenu
 
 menu "External Custom Packages"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/LFD401_lab/LFD401_lab0_compiler/Config.in"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/LFD401_lab/LFD401_lab1_lib/Config.in"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/example_apps/bar_app/Config.in"
+source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/LFD401_lab/lab0_primitive/Config.in"
 source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/example_apps/foo_app/Config.in"
 source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/example_apps/hello_world/Config.in"
-source "$BR2_EXTERNAL_QEMUEMBEDDEDLINUX_PATH/packages/hello_app/Config.in"
 endmenu

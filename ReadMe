@@ -41,6 +41,7 @@ to build using builtroot:
 ./build.sh -b qemu_aarch64_virt_board -p customBuild -ro -s -S
 
 ./build.sh -b qemu_riscv64_virt_board -p customBuild
+./build.sh -b qemu_riscv64_virt_board -p customBuild -ro
 ./build.sh -b qemu_riscv64_virt_board -p customBuild -ro -s -S
 
 

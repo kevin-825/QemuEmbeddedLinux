@@ -1,0 +1,16 @@
+config BR2_PACKAGE_M_FOO
+	bool "m_foo"
+	depends on BR2_LINUX_KERNEL
+	default y if BR2_EXTERNAL_KMODE_DEV_ALL
+	help
+	  Enterprise out-of-tree kernel module and platform driver for m_foo.
+
+if BR2_PACKAGE_M_FOO
+
+config BR2_PACKAGE_M_FOO_DEBUG
+	bool "Enable Debug Mode for m_foo"
+	help
+	  Select this to compile the module with debug flags enabled.
+	  This will link debug.o and enable extra kernel logging.
+
+endif

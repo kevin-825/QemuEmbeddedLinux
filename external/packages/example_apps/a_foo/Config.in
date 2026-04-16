@@ -1,0 +1,5 @@
+config BR2_PACKAGE_A_FOO
+  bool "a_foo"
+  default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
+  help
+    Auto-generated user-space application package for a_foo.

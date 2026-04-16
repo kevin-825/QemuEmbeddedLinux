@@ -1,5 +1,0 @@
-config BR2_PACKAGE_LAB0_PRIMITIVE
-  bool "lab0_primitive"
-  default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
-  help
-    Auto-generated user-space application package for lab0_primitive.

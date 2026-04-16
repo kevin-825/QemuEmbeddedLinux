@@ -1,0 +1,5 @@
+config BR2_PACKAGE_A_LFD420_L0_PRIMITIVE
+  bool "a_LFD420_l0_primitive"
+  default y if BR2_EXTERNAL_PACKAGE_DEV_ALL
+  help
+    Auto-generated user-space application package for a_LFD420_l0_primitive.

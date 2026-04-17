@@ -60,6 +60,8 @@ add_my_kernel_modules_and_packages() {
     ./setup_external.sh -m external/kernel_modules/LFD420_labs/m_LFD420_l0_primitive
     ./setup_external.sh -m external/kernel_modules/example_mod/m_HelloMod
     ./setup_external.sh -m external/kernel_modules/example_mod/m_foo
+    ./setup_external.sh -m external/kernel_modules/LFD420_labs/m_LFD420_l5_producer
+    ./setup_external.sh -m external/kernel_modules/LFD420_labs/m_LFD420_l5_consumer
 
 
 

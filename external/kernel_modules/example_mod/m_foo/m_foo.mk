@@ -28,7 +28,8 @@ M_FOO_INSTALL_STAGING = YES
 M_FOO_MODULE_MAKE_OPTS = \
     CONFIG_M_FOO=m \
     $( M_FOO_DEBUG_FLAG ) \
-    DEPENDENCY_DIRS=""
+    DEPENDENCY_DIRS="" \
+    KBUILD_EXTRA_SYMBOLS=""
 
 
 # 2. Tell Buildroot HOW to install the header into the staging sysroot

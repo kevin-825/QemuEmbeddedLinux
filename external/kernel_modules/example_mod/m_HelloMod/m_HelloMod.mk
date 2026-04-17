@@ -28,7 +28,8 @@ M_HELLOMOD_INSTALL_STAGING = YES
 M_HELLOMOD_MODULE_MAKE_OPTS = \
     CONFIG_M_HELLOMOD=m \
     $( M_HELLOMOD_DEBUG_FLAG ) \
-    DEPENDENCY_DIRS=""
+    DEPENDENCY_DIRS="" \
+    KBUILD_EXTRA_SYMBOLS=""
 
 
 # 2. Tell Buildroot HOW to install the header into the staging sysroot

@@ -1,0 +1,16 @@
+config BR2_PACKAGE_M_LFD420
+	bool "m_LFD420"
+	depends on BR2_LINUX_KERNEL
+	default y if BR2_EXTERNAL_KMODE_DEV_ALL
+	help
+	  Enterprise out-of-tree kernel module and platform driver for m_LFD420.
+
+if BR2_PACKAGE_M_LFD420
+
+config BR2_PACKAGE_M_LFD420_DEBUG
+	bool "Enable Debug Mode for m_LFD420"
+	help
+	  Select this to compile the module with debug flags enabled.
+	  This will link debug.o and enable extra kernel logging.
+
+endif

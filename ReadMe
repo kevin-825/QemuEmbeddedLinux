@@ -55,8 +55,7 @@ ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- ./kmake kernelversion
 ./kmake ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu-  mKCONFIG_ALLCONFIG='"arch/riscv/configs/defconfig arch/riscv/configs/64-bit.config"' allnoconfig
 ./kmake ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu-  nconfig
 
-./kmake ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- 
-
+./kmake ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- pdfdocs 
 
 cp /mnt/wsl/ramdisk5/QemuEmbeddedLinux/external/board/qemu_riscv64_virt_board/kernel_configs/riscv_virt_minimal_defconfig 
 

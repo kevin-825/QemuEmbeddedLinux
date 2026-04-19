@@ -28,7 +28,7 @@ ifneq ($(KERNELRELEASE),)
     CONFIG_M_LFD420 ?= m
 
     # 4. Define the core module
-    obj-$(CONFIG_M_LFD420) += $(MODULE_NAME).o
+    obj-$(CONFIG_M_LFD420) += $(MODULE_NAME).o m_LFD420_task.o
 
     # 5. Core source files always compiled (Renamed as requested)
     $(MODULE_NAME)-y := $(MODULE_NAME)_core.o

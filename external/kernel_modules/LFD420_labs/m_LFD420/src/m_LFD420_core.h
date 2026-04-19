@@ -23,4 +23,7 @@ enum m_LFD420_status {
 
 /* Future internal core definitions and state structures go here */
 
+
+extern int my_LFD420_task(void *pvParameters);
+
 #endif /* _EXT_KMOD_M_LFD420_CORE_H_ */

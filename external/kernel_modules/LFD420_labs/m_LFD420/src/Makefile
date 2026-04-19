@@ -28,11 +28,14 @@ ifneq ($(KERNELRELEASE),)
     CONFIG_M_LFD420 ?= m
 
     # 4. Define the core module
-    obj-$(CONFIG_M_LFD420) += $(MODULE_NAME).o m_LFD420_task.o
+    obj-$(CONFIG_M_LFD420) += $(MODULE_NAME).o m_LFD420_task.o m_LFD420_mod_param.o
 
     # 5. Core source files always compiled (Renamed as requested)
     $(MODULE_NAME)-y := $(MODULE_NAME)_core.o
 
+    m_LFD420_task-y := m_LFD420_l6_task.o
+    m_LFD420_mod_param-y := m_LFD420_l7_mod_param.o
+    
 	# 6. Conditional Feature Flags (e.g., make DEBUG_ENABLE=y)
     ifeq ($(DEBUG_ENABLE),y)
         ccflags-y += -DDEBUG_MODE_ENABLED
